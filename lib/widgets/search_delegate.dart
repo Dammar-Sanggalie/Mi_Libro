@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:perpustakaan_mini/cubit/book_search_cubit.dart';
 import '../data/app_data.dart';
-//import '../models/book_model.dart';
-//import '../screens/book_detail_screen.dart';
 import 'compact_book_card.dart';
 
-// Enhanced Search Delegate
+// Enhanced Search Delegate (Sekarang menggunakan Cubit)
 class EnhancedSearchDelegate extends SearchDelegate<String> {
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -21,7 +21,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
   }
 
   @override
-  String get searchFieldLabel => 'Search books, authors, categories...';
+  String get searchFieldLabel => 'Search books from Big Book API...';
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -29,7 +29,10 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
       if (query.isNotEmpty)
         IconButton(
           icon: Icon(Icons.clear_rounded, color: Colors.white),
-          onPressed: () => query = '',
+          onPressed: () {
+            query = '';
+            context.read<BookSearchCubit>().clearSearch();
+          },
         ),
     ];
   }
@@ -38,21 +41,32 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: Icon(Icons.arrow_back_rounded, color: Colors.white),
-      onPressed: () => close(context, ''),
+      onPressed: () {
+        context.read<BookSearchCubit>().clearSearch();
+        close(context, '');
+      },
     );
   }
 
   @override
   Widget buildResults(BuildContext context) {
-    return _buildSearchResults();
+    if (query.isNotEmpty) {
+      context.read<BookSearchCubit>().searchApiBooks(query);
+    }
+    return _buildCubitResults();
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
     if (query.isEmpty) {
+      context.read<BookSearchCubit>().clearSearch();
       return _buildEmptyState();
+    } else {
+      // Panggil API setiap kali user mengetik
+      // (Untuk aplikasi nyata, tambahkan 'debounce' di sini)
+      context.read<BookSearchCubit>().searchApiBooks(query);
+      return _buildCubitResults();
     }
-    return _buildSearchResults();
   }
 
   Widget _buildEmptyState() {
@@ -84,7 +98,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
             ),
             SizedBox(height: 8),
             Text(
-              'Try searching for books, authors, or categories',
+              'Search books, authors, or categories from API',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.4),
                 fontSize: 12,
@@ -96,16 +110,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
     );
   }
 
-  Widget _buildSearchResults() {
-    final searchResults = AppData.books
-        .where(
-          (book) =>
-              book.title.toLowerCase().contains(query.toLowerCase()) ||
-              book.author.toLowerCase().contains(query.toLowerCase()) ||
-              book.category.toLowerCase().contains(query.toLowerCase()),
-        )
-        .toList();
-
+  Widget _buildCubitResults() {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -114,19 +119,31 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
           colors: [Color(0xFF1A1A2E), Color(0xFF0F0F23)],
         ),
       ),
-      child: searchResults.isEmpty
-          ? Center(
+      child: BlocBuilder<BookSearchCubit, BookSearchState>(
+        builder: (context, state) {
+          // STATE: LOADING
+          if (state is BookSearchLoading) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF6366F1),
+              ),
+            );
+          }
+
+          // STATE: ERROR
+          if (state is BookSearchError) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.search_off_rounded,
+                    Icons.error_outline_rounded,
                     size: 60,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.red.withOpacity(0.5),
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'No results found',
+                    'Search Failed',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
                       fontSize: 16,
@@ -134,23 +151,64 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
                     ),
                   ),
                   SizedBox(height: 8),
-                  Text(
-                    'Try searching with different keywords',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
-                      fontSize: 12,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Text(
+                      state.message,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],
               ),
-            )
-          : Column(
+            );
+          }
+
+          // STATE: LOADED (SUKSES)
+          if (state is BookSearchLoaded) {
+            if (state.books.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_off_rounded,
+                      size: 60,
+                      color: Colors.white.withOpacity(0.3),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'No results found',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.6),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Try searching with different keywords',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Tampilkan GridView
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
-                    '${searchResults.length} results found',
+                    '${state.books.length} results found',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
                       fontSize: 14,
@@ -167,17 +225,23 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 16,
                     ),
-                    itemCount: searchResults.length,
+                    itemCount: state.books.length,
                     itemBuilder: (context, index) {
                       return CompactBookCard(
-                        book: searchResults[index],
+                        book: state.books[index],
                         colorIndex: index % AppData.primaryColors.length,
                       );
                     },
                   ),
                 ),
               ],
-            ),
+            );
+          }
+
+          // STATE: INITIAL
+          return _buildEmptyState();
+        },
+      ),
     );
   }
 }
