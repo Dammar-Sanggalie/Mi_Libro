@@ -1,3 +1,5 @@
+// lib/models/book_model.dart
+
 import 'package:intl/intl.dart';
 import 'package:equatable/equatable.dart';
 
@@ -94,25 +96,67 @@ class DigitalBook extends Book {
     if (date == null) return 2024;
     if (date is int) return date;
     if (date is String) {
-      // Ambil 4 karakter pertama (misal "2023-10-25" -> "2023")
-      return int.tryParse(date.substring(0, 4)) ?? 2024;
+      if (date.length >= 4) {
+        return int.tryParse(date.substring(0, 4)) ?? 2024;
+      }
     }
     return 2024;
   }
+
+  // Helper untuk parsing authors
+  static String _parseAuthors(dynamic authors) {
+    if (authors == null || authors is! List || authors.isEmpty) {
+      return 'No Author';
+    }
+    try {
+      return authors
+          .map((author) => (author as Map<String, dynamic>)['name'] as String)
+          .join(', ');
+    } catch (e) {
+      print('Gagal parsing authors: $e');
+      return 'No Author';
+    }
+  }
+
+  // --- FUNGSI HELPER BARU UNTUK RATING (INI PERBAIKANNYA) ---
+  static double _parseRating(dynamic ratingData) {
+    // Cek jika ratingData adalah Map dan punya key 'average'
+    if (ratingData is Map<String, dynamic> &&
+        ratingData.containsKey('average')) {
+      final avg = ratingData['average'];
+      if (avg is num) {
+        // API mengembalikan rating 0.0 - 1.0. Kita ubah ke skala 0.0 - 5.0
+        double scaledRating = (avg as num).toDouble() * 5.0;
+        // Batasi nilainya antara 0.0 dan 5.0
+        return scaledRating.clamp(0.0, 5.0);
+      }
+    }
+    // Cek jika API (mungkin) mengirim rating sebagai angka
+    if (ratingData is num) {
+      return ratingData.toDouble();
+    }
+    // Jika tidak ada data, beri rating default
+    return 4.0;
+  }
+  // --------------------------------------------------------
 
   // Factory constructor dari JSON API
   factory DigitalBook.fromJson(Map<String, dynamic> json) {
     return DigitalBook(
       json['title'] ?? 'No Title',
-      (json['authors'] as List?)?.join(', ') ?? 'No Author',
-      _parseYear(json['publish_date']), // Gunakan helper aman
+      _parseAuthors(json['authors']), // Helper authors
+      _parseYear(json['publish_date']), // Helper tahun
       (json['genres'] as List?)?.first ?? 'General',
       json['description'] ?? 'No Description',
       'N/A', // API tidak menyediakan ini
       'API', // Tandai sebagai format 'API'
       json['image'] ?? '', // URL Gambar dari API
       'N/A', // API tidak menyediakan PDF URL
-      rating: (json['rating'] as num?)?.toDouble() ?? 4.0,
+
+      // --- PERBAIKAN: Gunakan helper rating yang baru ---
+      rating: _parseRating(json['rating']),
+
+      // 'number_of_pages' tidak ada di JSON, jadi 'downloads' akan 0 (ini aman)
       downloads: (json['number_of_pages'] as int?) ?? 0,
     );
   }
