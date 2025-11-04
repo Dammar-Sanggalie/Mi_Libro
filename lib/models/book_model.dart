@@ -1,7 +1,8 @@
 import 'package:intl/intl.dart';
+import 'package:equatable/equatable.dart';
 
 // Enhanced OOP Implementation
-class Book {
+class Book extends Equatable {
   String _title;
   String _author;
   int _year;
@@ -16,14 +17,14 @@ class Book {
     this._description,
   );
 
-  // Getters with validation
+  // Getters
   String get title => _title;
   String get author => _author;
   int get year => _year;
   String get category => _category;
   String get description => _description;
 
-  // Enhanced setters with validation
+  // Setters
   set title(String title) {
     if (title.isNotEmpty) _title = title;
   }
@@ -58,6 +59,9 @@ class Book {
       'description': _description,
     };
   }
+
+  @override
+  List<Object?> get props => [title, author, year, category, description];
 }
 
 // Enhanced Inheritance
@@ -85,7 +89,35 @@ class DigitalBook extends Book {
         _downloads = downloads,
         super(title, author, year, category, description);
 
-  // Enhanced getters
+  // Helper untuk parsing tahun yang aman dari API
+  static int _parseYear(dynamic date) {
+    if (date == null) return 2024;
+    if (date is int) return date;
+    if (date is String) {
+      // Ambil 4 karakter pertama (misal "2023-10-25" -> "2023")
+      return int.tryParse(date.substring(0, 4)) ?? 2024;
+    }
+    return 2024;
+  }
+
+  // Factory constructor dari JSON API
+  factory DigitalBook.fromJson(Map<String, dynamic> json) {
+    return DigitalBook(
+      json['title'] ?? 'No Title',
+      (json['authors'] as List?)?.join(', ') ?? 'No Author',
+      _parseYear(json['publish_date']), // Gunakan helper aman
+      (json['genres'] as List?)?.first ?? 'General',
+      json['description'] ?? 'No Description',
+      'N/A', // API tidak menyediakan ini
+      'API', // Tandai sebagai format 'API'
+      json['image'] ?? '', // URL Gambar dari API
+      'N/A', // API tidak menyediakan PDF URL
+      rating: (json['rating'] as num?)?.toDouble() ?? 4.0,
+      downloads: (json['number_of_pages'] as int?) ?? 0,
+    );
+  }
+
+  // Getters
   String get fileSize => _fileSize;
   String get format => _format;
   String get imageUrl => _imageUrl;
@@ -93,7 +125,7 @@ class DigitalBook extends Book {
   double get rating => _rating;
   int get downloads => _downloads;
 
-  // Enhanced setters
+  // Setters
   set fileSize(String size) {
     if (size.isNotEmpty) _fileSize = size;
   }
@@ -124,7 +156,6 @@ class DigitalBook extends Book {
     return '${super.displayInfo()} - $_format ($_fileSize) • ${_rating.toStringAsFixed(1)}⭐';
   }
 
-  // Updated method using intl package for Indonesian number formatting
   String getFormattedDownloads() {
     return NumberFormat.compact(locale: 'id_ID').format(_downloads);
   }
@@ -141,4 +172,8 @@ class DigitalBook extends Book {
       'downloads': _downloads,
     };
   }
+
+  @override
+  List<Object?> get props =>
+      [...super.props, fileSize, format, imageUrl, pdfUrl, rating, downloads];
 }
