@@ -1,16 +1,33 @@
-# mi_libro
 
-A new Flutter project.
+# Proyek Digital Library: Peta Jalan Pengembangan
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
+#  Status Saat Ini (yg udah fungsi)
 
-A few resources to get you started if this is your first Flutter project:
+- **Arsitektur Inti**: Proyek memiliki struktur yang baik menggunakan BLoC (Cubit) dan Repository Pattern.
+  - `BookLibraryCubit` dan `BookSearchCubit` sudah berfungsi untuk me-manage state.
+  - `ApiBookRepository` berhasil memanggil endpoint `search-books` dari Big Book API menggunakan `dio`.
+- **Alur Autentikasi**: Alur `SplashScreen` -> `LoginScreen` -> `HomeScreen` sudah berjalan lancar.
+- **Fitur Utama (Sebagian)**:
+  - **Library (Home)**: Berhasil menampilkan daftar buku awal dari API .
+  - **Penyimpanan Lokal**: `AppData` sudah bisa menyimpan data favorit dan rating ke `SharedPreferences`.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+## Masalah Utama (Yang Harus Diperbaiki)
+  - **Pencarian**: belum bisa melakukan pencarian
+  - **Detail Buku**: detail buku blm di call, jadi masih blm ada (liat dokumentasi), sesuaikan jg tampilan sesuai layout yg normal
+  
+  - **explore**: yg dipanggil masih model awal bukan dr api.
+  - **favorit**: blm bisa menambah favorit.
+  
+
+
+# dokumentasi :  
+    https://bigbookapi.com/docs/#Search-Books
+
+
+
+
+
+
