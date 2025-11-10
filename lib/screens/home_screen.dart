@@ -5,9 +5,9 @@ import 'package:perpustakaan_mini/cubit/book_search_cubit.dart';
 import 'package:perpustakaan_mini/repositories/api_book_repository.dart';
 import 'package:perpustakaan_mini/repositories/book_repository.dart';
 import 'book_library_screen.dart';
-import '../screens/compact_book_card.dart'; // Updated import path
-import 'favorites_screen.dart';
-import 'profile_screen.dart';
+import 'package:perpustakaan_mini/screens/compact_book_card.dart'; // Updated import path
+import 'package:perpustakaan_mini/screens/favorites_screen.dart';
+import 'package:perpustakaan_mini/screens/profile_screen.dart';
 
 // Enhanced Home Screen with Bottom Navigation AND Providers
 class HomeScreen extends StatefulWidget {
