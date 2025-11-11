@@ -97,8 +97,11 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     setState(() {
       if (isFavorite) {
         AppData.favoriteBooks.remove(_book!.title);
+        AppData.favoritedBooks
+            .removeWhere((book) => book.title == _book!.title);
       } else {
         AppData.favoriteBooks.add(_book!.title);
+        AppData.favoritedBooks.add(_book!);
       }
       isFavorite = !isFavorite;
     });
@@ -215,7 +218,8 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.cloud_off_rounded, color: Colors.white30, size: 48),
+                  Icon(Icons.cloud_off_rounded,
+                      color: Colors.white30, size: 48),
                   SizedBox(height: 16),
                   Text(
                     'Gagal Memuat Buku',
@@ -431,7 +435,9 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.menu_book_rounded, // Icon baru
+                                          Icon(
+                                              Icons
+                                                  .menu_book_rounded, // Icon baru
                                               size: 16,
                                               color: Colors.white),
                                           SizedBox(width: 4),

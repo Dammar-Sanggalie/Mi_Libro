@@ -183,7 +183,9 @@ class AppData {
   ];
 
   static User? currentUser;
-  static Set<String> favoriteBooks = {};
+  static Set<String> favoriteBooks = {}; // Untuk kompatibilitas
+  static List<DigitalBook> favoritedBooks =
+      []; // List untuk menyimpan buku favorit lengkap
 
   static List<Color> primaryColors = [
     Color(0xFF6366F1), // Indigo
@@ -203,13 +205,33 @@ class AppData {
   // New methods for persistent storage
   static Future<void> saveFavorites() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Simpan sebagai JSON list dari buku favorit
+    final favoriteJsonList =
+        favoritedBooks.map((book) => jsonEncode(book.toJson())).toList();
+    await prefs.setStringList('favoritedBooks', favoriteJsonList);
+
+    // Juga simpan untuk backward compatibility
     await prefs.setStringList('favoriteBooks', favoriteBooks.toList());
   }
 
   static Future<void> loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
-    final favoriteList = prefs.getStringList('favoriteBooks') ?? [];
-    favoriteBooks = favoriteList.toSet();
+
+    // Load favorite books dari JSON list
+    final favoriteJsonList = prefs.getStringList('favoritedBooks') ?? [];
+    if (favoriteJsonList.isNotEmpty) {
+      favoritedBooks = favoriteJsonList.map((jsonString) {
+        return DigitalBook.fromJson(jsonDecode(jsonString));
+      }).toList();
+      // Sync favoriteBooks set dengan favoritedBooks list
+      favoriteBooks = favoritedBooks.map((book) => book.title).toSet();
+    } else {
+      // Fallback: load dari favoriteBooks lama untuk kompatibilitas
+      final favoriteList = prefs.getStringList('favoriteBooks') ?? [];
+      favoriteBooks = favoriteList.toSet();
+      favoritedBooks = [];
+    }
   }
 
   // Add new static field for storing user ratings
