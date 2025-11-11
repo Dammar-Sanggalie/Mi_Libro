@@ -18,6 +18,9 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
+  // <-- BARU: Scroll controller untuk pagination
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -30,8 +33,10 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
     );
     _animationController.forward();
 
+    // <-- BARU: Tambahkan listener untuk scroll
+    _scrollController.addListener(_onScroll);
+
     // --- PANGGIL API SAAT LAYAR DIMUAT ---
-    // (Provider sudah ada di HomeScreen, jadi kita bisa panggil ini)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BookLibraryCubit>().fetchInitialBooks();
     });
@@ -41,7 +46,18 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
   @override
   void dispose() {
     _animationController.dispose();
+    _scrollController.removeListener(_onScroll); // <-- BARU: Hapus listener
+    _scrollController.dispose(); // <-- BARU: Dispose controller
     super.dispose();
+  }
+
+  // <-- BARU: Fungsi listener untuk scroll
+  void _onScroll() {
+    // Panggil fetchMoreBooks jika sudah scroll mendekati akhir (cth: 200 pixel dari akhir)
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      context.read<BookLibraryCubit>().fetchMoreBooks();
+    }
   }
 
   @override
@@ -307,6 +323,8 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                             // GridView
                             Expanded(
                               child: GridView.builder(
+                                // <-- BARU: Pasang controller
+                                controller: _scrollController,
                                 padding: EdgeInsets.fromLTRB(16, 0, 16, 120),
                                 physics: BouncingScrollPhysics(),
                                 gridDelegate:
@@ -316,8 +334,24 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 16,
                                 ),
-                                itemCount: filteredApiBooks.length,
+                                // <-- PERUBAHAN: Tambah 1 item untuk loader jika belum max
+                                itemCount: filteredApiBooks.length +
+                                    (state.hasReachedMax ? 0 : 1),
                                 itemBuilder: (context, index) {
+                                  // <-- PERUBAHAN: Logika untuk menampilkan loader di akhir
+                                  if (index == filteredApiBooks.length) {
+                                    return Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: CircularProgressIndicator(
+                                          color: Color(0xFF6366F1),
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  // Tampilkan CompactBookCard seperti biasa
                                   return CompactBookCard(
                                     book: filteredApiBooks[index],
                                     colorIndex:

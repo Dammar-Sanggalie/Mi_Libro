@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:getwidget/getwidget.dart';
+import 'package:perpustakaan_mini/repositories/book_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import '../data/app_data.dart';
 import '../models/book_model.dart';
 
-// Enhanced Book Detail Screen
+// Enhanced Book Detail Screen - Sekarang mengambil data berdasarkan ID
 class EnhancedBookDetailScreen extends StatefulWidget {
-  final DigitalBook book;
+  final int bookId;
 
-  const EnhancedBookDetailScreen({Key? key, required this.book})
+  const EnhancedBookDetailScreen({Key? key, required this.bookId})
       : super(key: key);
 
   @override
@@ -22,9 +24,12 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  bool isFavorite = false;
 
-  // New state variable for user rating
+  // State baru untuk mengelola pengambilan data
+  DigitalBook? _book;
+  bool _isLoading = true;
+  String? _error;
+  bool isFavorite = false;
   double _userRating = 0.0;
 
   @override
@@ -45,12 +50,38 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
       ),
     );
 
-    isFavorite = AppData.favoriteBooks.contains(widget.book.title);
+    // Panggil fungsi untuk mengambil detail
+    _fetchBookDetails();
+  }
 
-    // Load saved rating for this book
-    _userRating = AppData.getUserRating(widget.book.title);
+  // Fungsi baru untuk mengambil data buku dari API
+  Future<void> _fetchBookDetails() async {
+    try {
+      // 1. Ambil buku dari repository menggunakan ID
+      final fetchedBook =
+          await context.read<BookRepository>().getBookDetails(widget.bookId);
 
-    _animationController.forward();
+      // 2. Set state dengan data yang berhasil didapat
+      setState(() {
+        _book = fetchedBook;
+        // 3. Inisialisasi favorit & rating SETELAH buku didapat
+        isFavorite = AppData.favoriteBooks.contains(fetchedBook.title);
+        _userRating = AppData.getUserRating(fetchedBook.title);
+        _isLoading = false;
+      });
+
+      // 4. Mulai animasi setelah data siap
+      _animationController.forward();
+    } catch (e) {
+      // Tangani jika terjadi error
+      setState(() {
+        // Beri pesan error yang lebih singkat untuk UI
+        _error = "Gagal memuat detail buku. Silakan coba lagi.";
+        _isLoading = false;
+      });
+      // Tetap tampilkan error lengkap di konsol untuk debugging
+      print('Error fetching book details: $e');
+    }
   }
 
   @override
@@ -60,11 +91,14 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   }
 
   void _toggleFavorite() {
+    // Pastikan _book tidak null
+    if (_book == null) return;
+
     setState(() {
       if (isFavorite) {
-        AppData.favoriteBooks.remove(widget.book.title);
+        AppData.favoriteBooks.remove(_book!.title);
       } else {
-        AppData.favoriteBooks.add(widget.book.title);
+        AppData.favoriteBooks.add(_book!.title);
       }
       isFavorite = !isFavorite;
     });
@@ -93,14 +127,19 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   }
 
   Future<void> _openPDF() async {
+    // Pastikan _book tidak null
+    if (_book == null) return;
+
+    // Catatan: 'pdfUrl' dari API di-set ke 'N/A' di model.
+    // Logic ini akan gagal (seperti seharusnya) jika URL tidak valid.
     try {
-      final Uri url = Uri.parse(widget.book.pdfUrl);
+      final Uri url = Uri.parse(_book!.pdfUrl);
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open PDF'),
+            content: Text('Could not open PDF (link invalid)'), // Pesan error
             backgroundColor: Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -115,12 +154,12 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle_outline, color: Colors.white),
+              Icon(Icons.error_outline, color: Colors.white),
               SizedBox(width: 8),
-              Text('Opening PDF...'),
+              Text('Error opening URL'),
             ],
           ),
-          backgroundColor: Color(0xFF10B981),
+          backgroundColor: Color(0xFFEF4444),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -131,10 +170,89 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     }
   }
 
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1A1A2E), Color(0xFF0F0F23)],
+          ),
+        ),
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF6366F1),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen() {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1A1A2E), Color(0xFF0F0F23)],
+          ),
+        ),
+        // Bungkus dengan SingleChildScrollView untuk mengatasi overflow
+        child: SingleChildScrollView(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.cloud_off_rounded, color: Colors.white30, size: 48),
+                  SizedBox(height: 16),
+                  Text(
+                    'Gagal Memuat Buku',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    _error ?? 'Terjadi kesalahan tidak diketahui',
+                    style: TextStyle(color: Colors.red.shade300),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    int colorIndex =
-        AppData.books.indexOf(widget.book) % AppData.primaryColors.length;
+    // Handle state Loading
+    if (_isLoading) {
+      return _buildLoadingScreen();
+    }
+
+    // Handle state Error
+    if (_error != null || _book == null) {
+      return _buildErrorScreen();
+    }
+
+    // Buat variabel lokal 'book'
+    final DigitalBook book = _book!;
+
+    // Gunakan ID buku untuk menentukan warna
+    int colorIndex = book.id % AppData.primaryColors.length;
 
     return Scaffold(
       body: Container(
@@ -244,7 +362,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
                                     child: Image.network(
-                                      widget.book.imageUrl,
+                                      book.imageUrl, // Gunakan 'book'
                                       fit: BoxFit.cover,
                                       errorBuilder:
                                           (context, error, stackTrace) {
@@ -267,7 +385,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                   ),
                                 ),
                                 SizedBox(height: 20),
-                                // Updated Rating & Downloads section
+                                // Updated Rating & Pages section
                                 Wrap(
                                   spacing: 12.0,
                                   runSpacing: 8.0,
@@ -277,13 +395,14 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                     GFRating(
                                       value: _userRating,
                                       onChanged: (rating) async {
+                                        if (_book == null) return; // Guard
                                         setState(() {
                                           _userRating = rating;
                                         });
 
                                         // Save the rating
                                         await AppData.saveRating(
-                                            widget.book.title, rating);
+                                            _book!.title, rating);
 
                                         // Show confirmation message
                                         ScaffoldMessenger.of(context)
@@ -301,7 +420,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                       allowHalfRating: true,
                                     ),
 
-                                    // Downloads counter remains the same
+                                    // <-- PERUBAHAN: Tampilkan "Pages" (Halaman)
                                     Container(
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 6),
@@ -312,11 +431,12 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.download_rounded,
-                                              size: 16, color: Colors.white),
+                                          Icon(Icons.menu_book_rounded, // Icon baru
+                                              size: 16,
+                                              color: Colors.white),
                                           SizedBox(width: 4),
                                           Text(
-                                            widget.book.getFormattedDownloads(),
+                                            '${book.numberOfPages} Pages', // Data baru
                                             style: TextStyle(
                                               color: Colors.white,
                                               fontSize: 12,
@@ -345,7 +465,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                       children: [
                         // Title and Author
                         Text(
-                          widget.book.title,
+                          book.title, // Gunakan 'book'
                           style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w300,
@@ -360,7 +480,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                             colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                           ).createShader(bounds),
                           child: Text(
-                            'by ${widget.book.author}',
+                            'by ${book.author}', // Gunakan 'book'
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.white,
@@ -369,7 +489,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                           ),
                         ),
                         SizedBox(height: 24),
-                        // Book Info Grid - FIXED
+                        // <-- PERUBAHAN: Book Info Grid
                         GridView.count(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
@@ -380,23 +500,23 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                           children: [
                             _buildInfoCard(
                               'Category',
-                              widget.book.category,
+                              book.category, // Tetap "General"
                               Icons.category_rounded,
                             ),
                             _buildInfoCard(
                               'Year',
-                              widget.book.year.toString(),
+                              book.year.toString(), // Tetap
                               Icons.calendar_today_rounded,
                             ),
                             _buildInfoCard(
-                              'Format',
-                              widget.book.format,
-                              Icons.description_rounded,
+                              'ISBN', // Ganti 'Format'
+                              book.isbn, // Data baru
+                              Icons.qr_code_rounded, // Icon baru
                             ),
                             _buildInfoCard(
-                              'Size',
-                              widget.book.fileSize,
-                              Icons.storage_rounded,
+                              'Pages', // Ganti 'Size'
+                              book.numberOfPages.toString(), // Data baru
+                              Icons.menu_book_rounded, // Icon baru
                             ),
                           ],
                         ),
@@ -448,7 +568,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                               ),
                               SizedBox(height: 12),
                               Text(
-                                widget.book.displayInfo(), // Polymorphism
+                                book.displayInfo(), // Gunakan 'book'
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.white.withOpacity(0.8),
@@ -470,7 +590,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                         ),
                         SizedBox(height: 12),
                         Text(
-                          widget.book.description,
+                          book.description, // Gunakan 'book'
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.white.withOpacity(0.8),
@@ -557,7 +677,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                             ),
                                             SizedBox(width: 12),
                                             Text(
-                                              '${widget.book.title} downloaded!',
+                                              '${book.title} downloaded!', // Gunakan 'book'
                                             ),
                                           ],
                                         ),

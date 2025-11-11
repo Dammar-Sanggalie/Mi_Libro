@@ -12,9 +12,14 @@ class BookLibraryLoading extends BookLibraryState {}
 
 class BookLibraryLoaded extends BookLibraryState {
   final List<DigitalBook> books;
-  const BookLibraryLoaded(this.books);
+  final bool hasReachedMax; // <-- PERUBAHAN: Ditambahkan
+
+  // <-- PERUBAHAN: Modifikasi constructor
+  const BookLibraryLoaded(this.books, {this.hasReachedMax = false});
+
   @override
-  List<Object> get props => [books];
+  // <-- PERUBAHAN: Modifikasi props
+  List<Object> get props => [books, hasReachedMax];
 }
 
 class BookLibraryError extends BookLibraryState {
