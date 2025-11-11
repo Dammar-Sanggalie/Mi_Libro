@@ -6,7 +6,7 @@ import 'package:perpustakaan_mini/models/book_model.dart';
 import 'package:perpustakaan_mini/repositories/book_repository.dart';
 
 class ApiBookRepository implements BookRepository {
-  final String _apiKey = '8393a2463a6743b7a8c4b86fa4fae970';
+  final String _apiKey = 'a2d79e47fb1b45429128ac0b1c88fbe2';
   final String _baseUrl = 'https://api.bigbookapi.com';
 
   late final Dio _dio;
