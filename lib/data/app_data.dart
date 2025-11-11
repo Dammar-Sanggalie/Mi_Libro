@@ -13,6 +13,7 @@ class AppData {
 
   static List<DigitalBook> books = [
     DigitalBook(
+      1001, // <-- PERUBAHAN: Menambahkan Dummy ID
       'The Art of Code',
       'Alexander Sterling',
       2024,
@@ -26,6 +27,7 @@ class AppData {
       downloads: 12500,
     ),
     DigitalBook(
+      1002, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Quantum Computing Fundamentals',
       'Dr. Elena Vasquez',
       2023,
@@ -39,6 +41,7 @@ class AppData {
       downloads: 8900,
     ),
     DigitalBook(
+      1003, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Digital Transformation Strategy',
       'Marcus Chen',
       2024,
@@ -52,6 +55,7 @@ class AppData {
       downloads: 15200,
     ),
     DigitalBook(
+      1004, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Machine Learning Mastery',
       'Sarah Thompson',
       2023,
@@ -65,6 +69,7 @@ class AppData {
       downloads: 22100,
     ),
     DigitalBook(
+      1005, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Astrophysics Today',
       'Prof. James Wright',
       2024,
@@ -78,6 +83,7 @@ class AppData {
       downloads: 7800,
     ),
     DigitalBook(
+      1006, // <-- PERUBAHAN: Menambahkan Dummy ID
       'UX Design Principles',
       'Isabella Rodriguez',
       2023,
@@ -91,6 +97,7 @@ class AppData {
       downloads: 11300,
     ),
     DigitalBook(
+      1007, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Blockchain & Web3',
       'David Kim',
       2024,
@@ -104,6 +111,7 @@ class AppData {
       downloads: 9600,
     ),
     DigitalBook(
+      1008, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Mindful Leadership',
       'Dr. Amelia Foster',
       2023,
@@ -117,6 +125,7 @@ class AppData {
       downloads: 6700,
     ),
     DigitalBook(
+      1009, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Future Tech Trends',
       'Ryan Matthews',
       2024,
@@ -130,6 +139,7 @@ class AppData {
       downloads: 8400,
     ),
     DigitalBook(
+      1010, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Data Science Excellence',
       'Lisa Zhang',
       2023,
@@ -143,6 +153,7 @@ class AppData {
       downloads: 13900,
     ),
     DigitalBook(
+      1011, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Cybersecurity Essentials',
       'Michael Torres',
       2024,
@@ -156,6 +167,7 @@ class AppData {
       downloads: 10200,
     ),
     DigitalBook(
+      1012, // <-- PERUBAHAN: Menambahkan Dummy ID
       'Creative Writing Mastery',
       'Emma Clarke',
       2023,

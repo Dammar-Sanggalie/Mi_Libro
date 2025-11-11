@@ -9,14 +9,14 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
   @override
   ThemeData appBarTheme(BuildContext context) {
     return ThemeData(
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
       ),
-      textTheme: TextTheme(titleLarge: TextStyle(color: Colors.white)),
+      textTheme: const TextTheme(titleLarge: TextStyle(color: Colors.white)),
     );
   }
 
@@ -28,7 +28,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
     return [
       if (query.isNotEmpty)
         IconButton(
-          icon: Icon(Icons.clear_rounded, color: Colors.white),
+          icon: const Icon(Icons.clear_rounded, color: Colors.white),
           onPressed: () {
             query = '';
             context.read<BookSearchCubit>().clearSearch();
@@ -40,7 +40,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.arrow_back_rounded, color: Colors.white),
+      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
       onPressed: () {
         context.read<BookSearchCubit>().clearSearch();
         close(context, '');
@@ -71,7 +71,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
 
   Widget _buildEmptyState() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -87,7 +87,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
               size: 60,
               color: Colors.white.withOpacity(0.3),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Search your library',
               style: TextStyle(
@@ -96,7 +96,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
                 fontWeight: FontWeight.w300,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Search books, authors, or categories from API',
               style: TextStyle(
@@ -112,7 +112,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
 
   Widget _buildCubitResults() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -141,7 +141,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
                     size: 60,
                     color: Colors.red.withOpacity(0.5),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     'Search Failed',
                     style: TextStyle(
@@ -150,7 +150,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
                       fontWeight: FontWeight.w300,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32.0),
                     child: Text(
@@ -179,7 +179,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
                       size: 60,
                       color: Colors.white.withOpacity(0.3),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       'No results found',
                       style: TextStyle(
@@ -188,7 +188,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
                         fontWeight: FontWeight.w300,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Try searching with different keywords',
                       style: TextStyle(
@@ -206,7 +206,7 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     '${state.books.length} results found',
                     style: TextStyle(
@@ -218,8 +218,8 @@ class EnhancedSearchDelegate extends SearchDelegate<String> {
                 ),
                 Expanded(
                   child: GridView.builder(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       childAspectRatio: 0.65,
                       crossAxisSpacing: 12,

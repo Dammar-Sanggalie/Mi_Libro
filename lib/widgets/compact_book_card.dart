@@ -21,8 +21,10 @@ class CompactBookCard extends StatelessWidget {
         Navigator.push(
           context,
           PageRouteBuilder(
+            // <-- PERUBAHAN: Kirim 'bookId' BUKAN objek 'book'
+            // Perubahan ini mengharuskan Anda memodifikasi lib/screens/book_detail_screen.dart
             pageBuilder: (context, animation, secondaryAnimation) =>
-                EnhancedBookDetailScreen(book: book),
+                EnhancedBookDetailScreen(bookId: book.id), // <-- PERUBAHAN DI SINI
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               return FadeTransition(
@@ -119,14 +121,14 @@ class CompactBookCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Content - FIXED with proper constraints
+              // Content
               Padding(
                 padding: EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top badges - FIXED overflow
+                    // Top badges
                     Row(
                       children: [
                         // Format badge
@@ -186,14 +188,14 @@ class CompactBookCard extends StatelessWidget {
                       ],
                     ),
                     Spacer(),
-                    // Book info at bottom - FIXED with better constraints
+                    // Book info at bottom
                     LayoutBuilder(
                       builder: (context, constraints) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Title - FIXED
+                            // Title
                             Container(
                               width: constraints.maxWidth,
                               child: Text(
@@ -217,7 +219,7 @@ class CompactBookCard extends StatelessWidget {
                               ),
                             ),
                             SizedBox(height: 2),
-                            // Author - FIXED
+                            // Author
                             Container(
                               width: constraints.maxWidth,
                               child: Text(
@@ -240,7 +242,7 @@ class CompactBookCard extends StatelessWidget {
                               ),
                             ),
                             SizedBox(height: 4),
-                            // Bottom row - FIXED with Flexible widgets
+                            // Bottom row
                             Row(
                               children: [
                                 // Category badge
