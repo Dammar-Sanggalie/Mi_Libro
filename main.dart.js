@@ -87092,7 +87092,7 @@ g=n.c
 g===$&&A.a()
 f=t.z
 s=7
-return A.T(g.Bn("/search-books",A.aC(["query","fiction","number",B.h.k(a),"offset",B.h.k(a0),"api-key","8393a2463a6743b7a8c4b86fa4fae970"],t.N,f),f),$async$r3)
+return A.T(g.Bn("/search-books",A.aC(["query","fiction","number",B.h.k(a),"offset",B.h.k(a0),"api-key","a2d79e47fb1b45429128ac0b1c88fbe2"],t.N,f),f),$async$r3)
 case 7:m=a2
 A.bS("[API Call - Dio] (Initial Books) Status Code: "+A.l(m.c))
 if(m.c===200){l=m.a
@@ -87136,7 +87136,7 @@ g=n.c
 g===$&&A.a()
 f=t.z
 s=7
-return A.T(g.Bn("/search-books",A.aC(["query",a,"number","21","api-key","8393a2463a6743b7a8c4b86fa4fae970"],t.N,f),f),$async$vY)
+return A.T(g.Bn("/search-books",A.aC(["query",a,"number","21","api-key","a2d79e47fb1b45429128ac0b1c88fbe2"],t.N,f),f),$async$vY)
 case 7:m=a1
 A.bS("[API Call - Dio] (Search) Status Code: "+A.l(m.c))
 if(m.c===200){l=m.a
@@ -87181,7 +87181,7 @@ g=n.c
 g===$&&A.a()
 f=t.z
 s=7
-return A.T(g.Bn("/"+h,A.aC(["api-key","8393a2463a6743b7a8c4b86fa4fae970"],t.N,f),f),$async$vL)
+return A.T(g.Bn("/"+h,A.aC(["api-key","a2d79e47fb1b45429128ac0b1c88fbe2"],t.N,f),f),$async$vL)
 case 7:m=a5
 A.bS("[API Call - Dio] (Details) Status Code: "+A.l(m.c))
 if(m.c===200){l=m.a
