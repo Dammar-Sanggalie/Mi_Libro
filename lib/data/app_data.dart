@@ -8,7 +8,7 @@ import '../models/user_model.dart';
 class AppData {
   static List<User> users = [
     User('dammar', 'miegoreng', 'dammar@email.com'),
-    User('sanggalie', 'nasipecel', 'sanggalie@email.com'),
+    User('1', '1', 'sanggalie@email.com'),
   ];
 
   static List<DigitalBook> books = [
