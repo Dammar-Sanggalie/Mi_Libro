@@ -249,6 +249,24 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                               book.category == _selectedCategory;
                         }).toList();
 
+                        // --- BARU: Logika untuk Grid Responsif ---
+                        final double screenWidth =
+                            MediaQuery.of(context).size.width;
+                        int crossAxisCount = 3; // Default untuk mobile
+                        double childAspectRatio = 0.62;
+
+                        if (screenWidth > 1200) {
+                          crossAxisCount = 7; // Desktop besar
+                          childAspectRatio = 0.7;
+                        } else if (screenWidth > 800) {
+                          crossAxisCount = 5; // Tablet atau desktop kecil
+                          childAspectRatio = 0.68;
+                        } else if (screenWidth > 550) {
+                          crossAxisCount = 4; // Mobile besar atau tablet kecil
+                          childAspectRatio = 0.65;
+                        }
+                        // -----------------------------------------
+
                         return Column(
                           children: [
                             // Categories - Dinamis
@@ -329,8 +347,10 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                                 physics: BouncingScrollPhysics(),
                                 gridDelegate:
                                     SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  childAspectRatio: 0.62,
+                                  // --- BARU: Menggunakan nilai dinamis ---
+                                  crossAxisCount: crossAxisCount,
+                                  childAspectRatio: childAspectRatio,
+                                  // ------------------------------------
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 16,
                                 ),
