@@ -18,8 +18,8 @@ class ApiBookRepository implements BookRepository {
         headers: {
           'Accept': 'application/json',
         },
-        connectTimeout: Duration(seconds: 15),
-        receiveTimeout: Duration(seconds: 15),
+        connectTimeout: Duration(seconds: 60),
+        receiveTimeout: Duration(seconds: 60),
       ),
     );
   }
