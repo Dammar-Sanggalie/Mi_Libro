@@ -3,7 +3,7 @@
 import 'package:intl/intl.dart';
 import 'package:equatable/equatable.dart';
 
-// Enhanced OOP Implementation
+// Base Class
 class Book extends Equatable {
   String _title;
   String _author;
@@ -19,37 +19,15 @@ class Book extends Equatable {
     this._description,
   );
 
-  // Getters
   String get title => _title;
   String get author => _author;
   int get year => _year;
   String get category => _category;
   String get description => _description;
 
-  // Setters
-  set title(String title) {
-    if (title.isNotEmpty) _title = title;
-  }
-
-  set author(String author) {
-    if (author.isNotEmpty) _author = author;
-  }
-
-  set year(int year) {
-    if (year > 1000 && year <= DateTime.now().year) _year = year;
-  }
-
-  set category(String category) {
-    if (category.isNotEmpty) _category = category;
-  }
-
-  set description(String description) {
-    if (description.isNotEmpty) _description = description;
-  }
-
-  // Polymorphism - Base method
+  // Base display info
   String displayInfo() {
-    return '$_title by $_author ($_year)';
+    return '$_title by $_author';
   }
 
   Map<String, dynamic> toJson() {
@@ -66,231 +44,136 @@ class Book extends Equatable {
   List<Object?> get props => [title, author, year, category, description];
 }
 
-// Enhanced Inheritance
+// Enhanced DigitalBook for Gutendex
 class DigitalBook extends Book {
-  int _id; // <-- PERUBAHAN: Menambahkan ID
-  String _fileSize;
-  String _format;
-  String _imageUrl;
-  String _pdfUrl;
-  double _rating;
-  int _downloads;
-  // <-- PERUBAHAN: Tambahkan field baru
-  int _numberOfPages;
-  String _isbn;
+  final int _id;
+  final String _imageUrl;
+  final String _epubUrl; // URL khusus untuk file EPUB
+  final int _downloads;
+  final List<String> _languages;
 
+  // Constructor
   DigitalBook(
-    this._id, // <-- PERUBAHAN: Menambahkan ID di constructor
+    this._id,
     String title,
     String author,
     int year,
     String category,
     String description,
-    this._fileSize,
-    this._format,
     this._imageUrl,
-    this._pdfUrl, {
-    double rating = 4.0,
+    this._epubUrl, {
     int downloads = 0,
-    int numberOfPages = 0, // <-- PERUBAHAN: Tambahkan
-    String isbn = 'N/A', // <-- PERUBAHAN: Tambahkan
-  })  : _rating = rating,
-        _downloads = downloads,
-        _numberOfPages = numberOfPages, // <-- PERUBAHAN: Inisialisasi
-        _isbn = isbn, // <-- PERUBAHAN: Inisialisasi
+    List<String> languages = const [],
+  })  : _downloads = downloads,
+        _languages = languages,
         super(title, author, year, category, description);
 
-  // Helper untuk parsing tahun yang aman dari API
-  static int _parseYear(dynamic date) {
-    if (date == null) return 2024;
-    // <-- PERUBAHAN: API detail mengirim 'double' (cth: 2000.0)
-    if (date is num) return date.toInt();
-    if (date is String) {
-      if (date.length >= 4) {
-        return int.tryParse(date.substring(0, 4)) ?? 2024;
-      }
-    }
+  // --- PARSING LOGIC KHUSUS GUTENDEX ---
+
+  // Helper untuk mengambil Author pertama
+  static String _parseAuthors(List<dynamic>? authors) {
+    if (authors == null || authors.isEmpty) return 'Unknown Author';
+    // Gutendex format: "Lastname, Firstname". Kita ubah sedikit jika perlu,
+    // tapi membiarkannya apa adanya juga oke.
+    return authors[0]['name'] ?? 'Unknown Author';
+  }
+
+  // Helper untuk mencari tahun dari range author (Gutendex tidak selalu punya publish date buku)
+  // Kita gunakan tahun lahir/wafat author atau tahun default
+  static int _parseYear(List<dynamic>? authors) {
+    if (authors == null || authors.isEmpty) return 2024;
+    // Coba ambil tahun meninggal atau lahir author sebagai referensi 'era' buku
+    final author = authors[0];
+    if (author['death_year'] != null) return author['death_year'];
+    if (author['birth_year'] != null) return author['birth_year'];
     return 2024;
   }
 
-  // Helper untuk parsing authors
-  static String _parseAuthors(dynamic authors) {
-    if (authors == null || authors is! List || authors.isEmpty) {
-      return 'No Author';
+  // Helper untuk mengambil kategori (Subject / Bookshelf)
+  static String _parseCategory(List<dynamic>? subjects, List<dynamic>? bookshelves) {
+    if (bookshelves != null && bookshelves.isNotEmpty) {
+      // Ambil kata kunci yang menarik dari bookshelf, misal "Science Fiction"
+      return bookshelves[0].toString().replaceAll('jh', '').trim(); 
     }
-    try {
-      return authors
-          .map((author) => (author as Map<String, dynamic>)['name'] as String)
-          .join(', ');
-    } catch (e) {
-      print('Gagal parsing authors: $e');
-      return 'No Author';
+    if (subjects != null && subjects.isNotEmpty) {
+      // Subject biasanya panjang, kita ambil bagian awal saja
+      return subjects[0].toString().split('--')[0].trim();
     }
+    return 'General';
   }
 
-  // Helper untuk rating
-  static double _parseRating(dynamic ratingData) {
-    if (ratingData is Map<String, dynamic> &&
-        ratingData.containsKey('average')) {
-      final avg = ratingData['average'];
-      if (avg is num) {
-        // <-- PERUBAHAN: Skala dari [0, 1] ke [0, 5]
-        double scaledRating = (avg as num).toDouble() * 5.0;
-        return scaledRating.clamp(0.0, 5.0);
-      }
-    }
-    if (ratingData is num) {
-      return ratingData.toDouble();
-    }
-    return 4.0;
-  }
+  // Factory Method Utama untuk Gutendex
+  factory DigitalBook.fromGutendex(Map<String, dynamic> json) {
+    // 1. Ambil Formats
+    final Map<String, dynamic> formats = json['formats'] ?? {};
+    
+    // 2. Cari URL Cover Image (Prioritas: Medium -> Small -> Any Image)
+    String imgUrl = formats['image/jpeg'] ?? 
+                    formats['image/png'] ?? 
+                    'https://via.placeholder.com/150'; // Fallback image
 
-  // <-- PERUBAHAN: Helper baru untuk ISBN
-  static String _parseIsbn(dynamic identifiers) {
-    if (identifiers is Map<String, dynamic>) {
-      if (identifiers.containsKey('isbn_13') &&
-          identifiers['isbn_13'] != null) {
-        return identifiers['isbn_13'] as String;
-      }
-      if (identifiers.containsKey('isbn_10') &&
-          identifiers['isbn_10'] != null) {
-        return identifiers['isbn_10'] as String;
-      }
-      if (identifiers.containsKey('open_library_id') &&
-          identifiers['open_library_id'] != null) {
-        return identifiers['open_library_id'] as String;
-      }
-    }
-    return 'N/A';
-  }
+    // 3. Cari URL EPUB (Prioritas: epub+zip -> epub)
+    String epubUrl = formats['application/epub+zip'] ?? '';
 
-  // Factory constructor dari JSON API (Untuk Search)
-  factory DigitalBook.fromJson(Map<String, dynamic> json) {
-    // Note: Search factory mungkin perlu disesuaikan jika respons search berbeda
+    // 4. Ambil Deskripsi (Summaries)
+    List<dynamic> summaries = json['summaries'] ?? [];
+    String desc = summaries.isNotEmpty 
+        ? summaries.join('\n\n') 
+        : 'No description available for this book. You can read it directly to find out more.';
+
     return DigitalBook(
-      (json['id'] as num?)?.toInt() ?? 0, // <-- PERUBAHAN: Ambil ID
-      json['title'] ?? 'No Title',
+      json['id'] ?? 0,
+      json['title'] ?? 'Untitled',
       _parseAuthors(json['authors']),
-      _parseYear(json['publish_date']),
-      (json['genres'] as List?)?.first ?? 'General',
-      json['description'] ?? 'No Description',
-      'N/A',
-      'API',
-      json['image'] ?? '',
-      'N/A',
-      rating: _parseRating(json['rating']),
-      // 'downloads' dari 'number_of_pages' (jika ada di search)
-      downloads: (json['number_of_pages'] as num?)?.toInt() ?? 0,
-      numberOfPages: (json['number_of_pages'] as num?)?.toInt() ?? 0,
-      isbn: _parseIsbn(json['identifiers']),
-    );
-  }
-
-  // <-- PERUBAHAN: Factory baru untuk endpoint Detail
-  factory DigitalBook.fromJsonDetail(Map<String, dynamic> json) {
-    return DigitalBook(
-      (json['id'] as num?)?.toInt() ?? 0, // <-- Ambil ID
-      json['title'] ?? 'No Title',
-      _parseAuthors(json['authors']), // Helper authors
-      _parseYear(json['publish_date']), // Helper tahun
-      'General', // <-- Respons detail tidak memiliki 'genres'
-      json['description'] ?? 'No Description',
-      'N/A', // API tidak menyediakan ini
-      'API', // Tandai sebagai format 'API'
-      json['image'] ?? '', // URL Gambar dari API
-      'N/A', // API tidak menyediakan PDF URL
-      rating: _parseRating(json['rating']), // Helper rating
-      downloads: 0, // <-- PERUBAHAN: API tidak menyediakan downloads
-      // <-- PERUBAHAN: Gunakan field baru
-      numberOfPages: (json['number_of_pages'] as num?)?.toInt() ?? 0,
-      // <-- PERUBAHAN: Gunakan helper baru
-      isbn: _parseIsbn(json['identifiers']),
+      _parseYear(json['authors']), // Estimasi tahun
+      _parseCategory(json['subjects'], json['bookshelves']),
+      desc,
+      imgUrl,
+      epubUrl,
+      downloads: json['download_count'] ?? 0,
+      languages: (json['languages'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 
   // Getters
-  int get id => _id; // <-- PERUBAHAN: Getter untuk ID
-  String get fileSize => _fileSize;
-  String get format => _format;
+  int get id => _id;
   String get imageUrl => _imageUrl;
-  String get pdfUrl => _pdfUrl;
-  double get rating => _rating;
+  String get epubUrl => _epubUrl; // Getter penting untuk fitur baca
   int get downloads => _downloads;
-  int get numberOfPages => _numberOfPages; // <-- PERUBAHAN: Getter baru
-  String get isbn => _isbn; // <-- PERUBAHAN: Getter baru
+  List<String> get languages => _languages;
 
-  // Setters
-  set fileSize(String size) {
-    if (size.isNotEmpty) _fileSize = size;
+  // Format download count agar rapi (misal: 12.5K)
+  String getFormattedDownloads() {
+    return NumberFormat.compact(locale: 'en_US').format(_downloads);
   }
 
-  set format(String format) {
-    if (format.isNotEmpty) _format = format;
-  }
+  // Helper cek apakah buku bisa dibaca (ada file EPUB-nya)
+  bool get isReadable => _epubUrl.isNotEmpty;
 
-  set imageUrl(String url) {
-    if (url.isNotEmpty) _imageUrl = url;
-  }
-
-  set pdfUrl(String url) {
-    if (url.isNotEmpty) _pdfUrl = url;
-  }
-
-  set rating(double rating) {
-    if (rating >= 0 && rating <= 5) _rating = rating;
-  }
-
-  set downloads(int downloads) {
-    if (downloads >= 0) _downloads = downloads;
-  }
-
-  set numberOfPages(int pages) {
-    // <-- PERUBAHAN: Setter baru
-    if (pages >= 0) _numberOfPages = pages;
-  }
-
-  set isbn(String isbn) {
-    // <-- PERUBAHAN: Setter baru
-    if (isbn.isNotEmpty) _isbn = isbn;
-  }
-
-  // Enhanced Polymorphism
   @override
   String displayInfo() {
-    return '${super.displayInfo()} - $_format ($_fileSize) • ${_rating.toStringAsFixed(1)}⭐';
-  }
-
-  String getFormattedDownloads() {
-    return NumberFormat.compact(locale: 'id_ID').format(_downloads);
+    return '${super.displayInfo()} • ${_languages.first.toUpperCase()}';
   }
 
   @override
   Map<String, dynamic> toJson() {
     return {
-      'id': _id, // <-- PERUBAHAN
+      'id': _id,
       ...super.toJson(),
-      'fileSize': _fileSize,
-      'format': _format,
       'imageUrl': _imageUrl,
-      'pdfUrl': _pdfUrl,
-      'rating': _rating,
+      'epubUrl': _epubUrl,
       'downloads': _downloads,
-      'numberOfPages': _numberOfPages, // <-- PERUBAHAN
-      'isbn': _isbn, // <-- PERUBAHAN
+      'languages': _languages,
     };
   }
 
   @override
   List<Object?> get props => [
-        _id, // <-- PERUBAHAN
+        _id,
         ...super.props,
-        fileSize,
-        format,
-        imageUrl,
-        pdfUrl,
-        rating,
-        downloads,
-        _numberOfPages, // <-- PERUBAHAN
-        _isbn, // <-- PERUBAHAN
+        _imageUrl,
+        _epubUrl,
+        _downloads,
+        _languages,
       ];
 }
