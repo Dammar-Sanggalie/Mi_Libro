@@ -111,7 +111,8 @@ class AppData {
   static Future<void> saveRating(String bookTitle, double rating) async {
     final prefs = await SharedPreferences.getInstance();
     userRatings[bookTitle] = rating;
-    final ratings = userRatings.map((key, value) => MapEntry(key, value.toString()));
+    final ratings =
+        userRatings.map((key, value) => MapEntry(key, value.toString()));
     await prefs.setString('userRatings', jsonEncode(ratings));
   }
 
@@ -120,12 +121,19 @@ class AppData {
     final ratingsStr = prefs.getString('userRatings');
     if (ratingsStr != null) {
       final ratingsMap = jsonDecode(ratingsStr) as Map<String, dynamic>;
-      userRatings = ratingsMap.map((key, value) => MapEntry(key, double.parse(value)));
+      userRatings =
+          ratingsMap.map((key, value) => MapEntry(key, double.parse(value)));
     }
   }
 
   static double getUserRating(String bookTitle) {
     return userRatings[bookTitle] ?? 0.0;
+  }
+
+  // Method untuk ensure data selalu ter-load dari SharedPreferences
+  static Future<void> initializeAppData() async {
+    await loadFavorites();
+    await loadRatings();
   }
 
   static List<String> get categories {
