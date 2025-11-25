@@ -43,14 +43,14 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
       context.read<BookLibraryCubit>().fetchInitialBooks();
     });
 
-    // Auto-scroll carousel every 2 seconds
-    _autoScrollTimer = Timer.periodic(Duration(seconds: 2), (timer) {
+    // Auto-scroll carousel every 5 seconds (slower for better UX)
+    _autoScrollTimer = Timer.periodic(Duration(seconds: 5), (timer) {
       if (mounted && _pageController.hasClients) {
         int nextPage = (_carouselIndex + 1) % 4;
         _pageController.animateToPage(
           nextPage,
-          duration: Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
+          duration: Duration(milliseconds: 800),
+          curve: Curves.easeInOutCubic,
         );
       }
     });
@@ -197,7 +197,22 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                     builder: (context, state) {
                       if (state is BookLibraryLoaded &&
                           state.books.isNotEmpty) {
-                        final topBooks = state.books.take(4).toList();
+                        // Filter hanya buku yang punya cover image (tidak kosong)
+                        final topBooks = state.books
+                            .where((book) => book.imageUrl.isNotEmpty)
+                            .take(4)
+                            .toList();
+
+                        // Debug: Print imageUrl untuk lihat apa yang diterima
+                        for (var book in state.books.take(4)) {
+                          print(
+                              'Book: ${book.title}, ImageURL: ${book.imageUrl}');
+                        }
+
+                        // Jika tidak ada buku dengan cover, tampilkan default UI
+                        if (topBooks.isEmpty) {
+                          return SizedBox.shrink();
+                        }
 
                         return Column(
                           children: [
@@ -206,140 +221,187 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                               child: PageView.builder(
                                 controller: _pageController,
                                 onPageChanged: (index) {
-                                  setState(() => _carouselIndex = index % 4);
+                                  setState(() =>
+                                      _carouselIndex = index % topBooks.length);
                                 },
+                                itemCount: 10000,
                                 itemBuilder: (context, index) {
                                   final book =
                                       topBooks[index % topBooks.length];
-                                  return Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 8),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          '/book-detail',
-                                          arguments: book,
-                                        );
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.black.withOpacity(0.4),
-                                              blurRadius: 12,
-                                              offset: Offset(0, 6),
-                                            ),
-                                          ],
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          child: Stack(
-                                            fit: StackFit.expand,
-                                            children: [
-                                              CachedNetworkImage(
-                                                imageUrl: book.imageUrl,
-                                                fit: BoxFit.cover,
-                                                placeholder: (context, url) =>
-                                                    Container(
-                                                  color: Color(0xFF2A2A3E),
-                                                  child: Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      color: Color(0xFF6366F1),
+                                  // Calculate scale based on distance from center
+                                  final isCenter =
+                                      index % topBooks.length == _carouselIndex;
+                                  final scale = isCenter ? 1.05 : 0.6;
+
+                                  return AnimatedScale(
+                                    scale: scale,
+                                    duration: Duration(milliseconds: 300),
+                                    curve: Curves.easeInOutCubic,
+                                    child: Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 8),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/book-detail',
+                                            arguments: book,
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.4),
+                                                blurRadius: 12,
+                                                offset: Offset(0, 6),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            child: Stack(
+                                              fit: StackFit.expand,
+                                              children: [
+                                                CachedNetworkImage(
+                                                  imageUrl:
+                                                      'https://wsrv.nl/?url=${Uri.encodeComponent(book.imageUrl)}',
+                                                  fit: BoxFit.cover,
+                                                  placeholder: (context, url) =>
+                                                      Container(
+                                                    color: Color(0xFF2A2A3E),
+                                                    child: Center(
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        color:
+                                                            Color(0xFF6366F1),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          Container(
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        begin:
+                                                            Alignment.topLeft,
+                                                        end: Alignment
+                                                            .bottomRight,
+                                                        colors: [
+                                                          Color(0xFF6366F1)
+                                                              .withOpacity(0.7),
+                                                          Color(0xFF8B5CF6)
+                                                              .withOpacity(0.7),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.book,
+                                                          color: Colors.white,
+                                                          size: 60,
+                                                        ),
+                                                        SizedBox(height: 8),
+                                                        Text(
+                                                          'Book Cover',
+                                                          style: TextStyle(
+                                                            color:
+                                                                Colors.white70,
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ),
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        Container(
-                                                  color: Color(0xFF2A2A3E),
-                                                  child: Icon(
-                                                    Icons.book,
-                                                    color: Colors.white24,
-                                                    size: 60,
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      begin:
+                                                          Alignment.topCenter,
+                                                      end: Alignment
+                                                          .bottomCenter,
+                                                      colors: [
+                                                        Colors.transparent,
+                                                        Colors.black
+                                                            .withOpacity(0.8),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.topCenter,
-                                                    end: Alignment.bottomCenter,
-                                                    colors: [
-                                                      Colors.transparent,
-                                                      Colors.black
-                                                          .withOpacity(0.8),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              Positioned(
-                                                bottom: 12,
-                                                left: 12,
-                                                right: 12,
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Container(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4,
+                                                Positioned(
+                                                  bottom: 12,
+                                                  left: 12,
+                                                  right: 12,
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                        padding: EdgeInsets
+                                                            .symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 4,
+                                                        ),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Color(0xFF6366F1),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(6),
+                                                        ),
+                                                        child: Text(
+                                                          book.category,
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
                                                       ),
-                                                      decoration: BoxDecoration(
-                                                        color:
-                                                            Color(0xFF6366F1),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(6),
-                                                      ),
-                                                      child: Text(
-                                                        book.category,
+                                                      SizedBox(height: 6),
+                                                      Text(
+                                                        book.title,
                                                         style: TextStyle(
                                                           color: Colors.white,
-                                                          fontSize: 11,
+                                                          fontSize: 14,
                                                           fontWeight:
                                                               FontWeight.w600,
+                                                        ),
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      SizedBox(height: 2),
+                                                      Text(
+                                                        book.author,
+                                                        style: TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 12,
                                                         ),
                                                         maxLines: 1,
                                                         overflow: TextOverflow
                                                             .ellipsis,
                                                       ),
-                                                    ),
-                                                    SizedBox(height: 6),
-                                                    Text(
-                                                      book.title,
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                      maxLines: 2,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    SizedBox(height: 2),
-                                                    Text(
-                                                      book.author,
-                                                      style: TextStyle(
-                                                        color: Colors.white70,
-                                                        fontSize: 12,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),

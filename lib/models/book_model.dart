@@ -114,6 +114,7 @@ class DigitalBook extends Book {
 
     // 2. LOGIKA IMAGE (Disesuaikan dengan request Anda)
     String imgUrl = '';
+    final int bookId = json['id'] ?? 0;
 
     // Prioritas UTAMA: Cek key "image/jpeg" (Cover Medium)
     if (formats.containsKey('image/jpeg')) {
@@ -134,9 +135,9 @@ class DigitalBook extends Book {
       }
     }
 
-    // Gunakan placeholder jika masih kosong
+    // Fallback 3: Jika masih kosong, gunakan cover_image dari Gutendex CDN
     if (imgUrl.isEmpty) {
-      imgUrl = 'https://via.placeholder.com/150';
+      imgUrl = 'https://www.gutendex.com/cache/epub/$bookId/pg$bookId.jpg';
     }
 
     // 3. Cari URL EPUB
