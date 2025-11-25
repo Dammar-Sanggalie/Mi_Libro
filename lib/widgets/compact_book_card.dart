@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../data/app_data.dart';
 import '../models/book_model.dart';
-import '../screens/book_detail_screen.dart'; // Pastikan import ini benar
+import '../screens/book_detail_screen.dart';
 
 class CompactBookCard extends StatelessWidget {
   final DigitalBook book;
@@ -13,6 +14,13 @@ class CompactBookCard extends StatelessWidget {
     required this.colorIndex,
   }) : super(key: key);
 
+  // FUNGSI PROXY: Mengatasi CORS dan blocking
+  String _getProxyUrl(String url) {
+    // Menggunakan wsrv.nl (Image Cache & Proxy)
+    // URL asli harus di-encode agar aman
+    return 'https://wsrv.nl/?url=${Uri.encodeComponent(url)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -21,7 +29,6 @@ class CompactBookCard extends StatelessWidget {
           context,
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                // PERBAIKAN: Tambahkan .toString() pada book.id
                 EnhancedBookDetailScreen(bookId: book.id.toString()),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
@@ -56,11 +63,32 @@ class CompactBookCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Book Cover Image
-              Image.network(
-                book.imageUrl,
+              // --- IMAGE DENGAN PROXY ---
+              CachedNetworkImage(
+                imageUrl: _getProxyUrl(book.imageUrl), // Gunakan Proxy URL
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
+                // Headers dihapus karena request ke proxy tidak butuh User-Agent khusus
+                placeholder: (context, url) => Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppData.primaryColors[colorIndex],
+                        AppData.primaryColors[colorIndex].withOpacity(0.7),
+                      ],
+                    ),
+                  ),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white.withOpacity(0.7),
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) {
                   return Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -81,29 +109,6 @@ class CompactBookCard extends StatelessWidget {
                     ),
                   );
                 },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppData.primaryColors[colorIndex],
-                          AppData.primaryColors[colorIndex].withOpacity(0.7),
-                        ],
-                      ),
-                    ),
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white.withOpacity(0.7),
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    ),
-                  );
-                },
               ),
               // Gradient Overlay
               Container(
@@ -119,14 +124,13 @@ class CompactBookCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Content
+              // Content Text
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top badges (Hanya tampilkan Bahasa)
                     Row(
                       children: [
                         if (book.languages.isNotEmpty)
@@ -151,14 +155,12 @@ class CompactBookCard extends StatelessWidget {
                       ],
                     ),
                     const Spacer(),
-                    // Book info at bottom
                     LayoutBuilder(
                       builder: (context, constraints) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Title
                             SizedBox(
                               width: constraints.maxWidth,
                               child: Text(
@@ -182,7 +184,6 @@ class CompactBookCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 2),
-                            // Author
                             SizedBox(
                               width: constraints.maxWidth,
                               child: Text(
@@ -205,10 +206,9 @@ class CompactBookCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            // Bottom row
+                            // Footer (Category & Download)
                             Row(
                               children: [
-                                // Category badge
                                 Flexible(
                                   flex: 2,
                                   child: Container(
@@ -233,7 +233,6 @@ class CompactBookCard extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                // Download count
                                 Flexible(
                                   flex: 1,
                                   child: Row(

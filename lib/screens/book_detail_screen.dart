@@ -9,7 +9,7 @@ import '../data/app_data.dart';
 import '../models/book_model.dart';
 // PERBAIKAN 1: Sesuaikan nama import dengan nama file asli (epub_player_screen.dart)
 import 'epub_player_screen.dart'; 
-
+import 'package:cached_network_image/cached_network_image.dart'; // <-- Tambah Import
 class EnhancedBookDetailScreen extends StatefulWidget {
   final String bookId;
   final DigitalBook? initialBook; // Diubah tipe datanya agar sesuai dengan model
@@ -259,10 +259,15 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                     ),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(16),
-                                      child: Image.network(
-                                        book.imageUrl,
+                                      child: CachedNetworkImage( // Gunakan CachedNetworkImage
+                                        // Bungkus dengan proxy wsrv.nl
+                                        imageUrl: 'https://wsrv.nl/?url=${Uri.encodeComponent(book.imageUrl)}',
                                         fit: BoxFit.cover,
-                                        errorBuilder: (ctx, err, stack) => Container(
+                                        placeholder: (ctx, url) => Container(
+                                          color: Colors.white10,
+                                          child: Center(child: CircularProgressIndicator(color: Colors.white)),
+                                        ),
+                                        errorWidget: (ctx, url, error) => Container(
                                           color: Colors.white24,
                                           child: Icon(Icons.book, color: Colors.white, size: 50),
                                         ),
