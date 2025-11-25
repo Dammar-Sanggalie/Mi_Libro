@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // PERUBAHAN: Tambah import bloc
 import 'package:intl/intl.dart';
 import '../data/app_data.dart';
+import '../cubit/book_library_cubit.dart'; // PERUBAHAN: Tambah import cubit
 import 'login_screen.dart';
 
 // Enhanced Profile Screen
@@ -97,12 +99,28 @@ class ProfileScreen extends StatelessWidget {
                 // Statistics
                 Row(
                   children: [
+                    // PERUBAHAN: Bungkus StatCard dengan BlocBuilder untuk mengambil Total Books dari API
                     Expanded(
-                      child: _buildStatCard(
-                        'Total Books',
-                        '${AppData.books.length}',
-                        Icons.library_books_rounded,
-                        [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      child: BlocBuilder<BookLibraryCubit, BookLibraryState>(
+                        builder: (context, state) {
+                          String totalBooks = '...'; // Default loading
+
+                          if (state is BookLibraryLoaded) {
+                            // Format angka (contoh: 74,000)
+                            totalBooks = NumberFormat.compact()
+                                .format(state.totalBookCount);
+                          } else if (state is BookLibraryInitial) {
+                            // Jika belum load, coba load manual atau pakai dummy
+                            totalBooks = '${AppData.books.length}';
+                          }
+
+                          return _buildStatCard(
+                            'Total Books',
+                            totalBooks,
+                            Icons.library_books_rounded,
+                            [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          );
+                        },
                       ),
                     ),
                     SizedBox(width: 12),
