@@ -563,16 +563,18 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                                   childAspectRatio: childAspectRatio,
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 16,
+                                ),
+                                itemCount: filteredBooks.length,
+                                itemBuilder: (context, index) {
+                                  return CompactBookCard(
+                                    book: filteredBooks[index],
+                                    colorIndex:
+                                        index % AppData.primaryColors.length,
+                                  );
+                                },
+                              ),
                             ),
-                            itemCount: filteredBooks.length,
-                            itemBuilder: (context, index) {
-                              return CompactBookCard(
-                                book: filteredBooks[index],
-                                colorIndex:
-                                    index % AppData.primaryColors.length,
-                              );
-                            },
-                          ),
+                          ],
                         );
                       }
 
