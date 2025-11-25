@@ -15,7 +15,7 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
   int _offset = 0;
   final int _limit = 18; // Jumlah buku per halaman (batch)
   bool _isFetching = false; // Penanda agar tidak fetch ganda
-  
+
   // Filter dan sorting options
   SortOption _currentSort = SortOption.popularity;
   RatingFilter _currentRatingFilter = RatingFilter.all;
@@ -35,8 +35,9 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
     try {
       print('CUBIT (Library): Fetching initial books...');
 
-      final newBooks = await _bookRepository.getInitialBooks(
+      final pageData = await _bookRepository.getInitialBooks(
           offset: _offset, number: _limit);
+      final newBooks = pageData.books;
 
       print('CUBIT (Library): Success, ${newBooks.length} books found.');
 
@@ -76,8 +77,9 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
       print('CUBIT (Library): Fetching more books from offset $_offset');
 
       try {
-        final newBooks = await _bookRepository.getInitialBooks(
+        final pageData = await _bookRepository.getInitialBooks(
             offset: _offset, number: _limit);
+        final newBooks = pageData.books;
 
         print(
             'CUBIT (Library): Success (more), ${newBooks.length} books found.');

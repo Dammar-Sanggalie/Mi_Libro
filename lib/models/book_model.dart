@@ -83,9 +83,10 @@ class DigitalBook extends Book {
     return 2024;
   }
 
-  static String _parseCategory(List<dynamic>? subjects, List<dynamic>? bookshelves) {
+  static String _parseCategory(
+      List<dynamic>? subjects, List<dynamic>? bookshelves) {
     if (bookshelves != null && bookshelves.isNotEmpty) {
-      return bookshelves[0].toString().replaceAll('jh', '').trim(); 
+      return bookshelves[0].toString().replaceAll('jh', '').trim();
     }
     if (subjects != null && subjects.isNotEmpty) {
       return subjects[0].toString().split('--')[0].trim();
@@ -108,15 +109,16 @@ class DigitalBook extends Book {
 
   factory DigitalBook.fromGutendex(Map<String, dynamic> json) {
     // 1. Ambil Formats dengan aman (Cast ke Map<String, dynamic>)
-    final Map<String, dynamic> formats = Map<String, dynamic>.from(json['formats'] ?? {});
-    
+    final Map<String, dynamic> formats =
+        Map<String, dynamic>.from(json['formats'] ?? {});
+
     // 2. LOGIKA IMAGE (Disesuaikan dengan request Anda)
     String imgUrl = '';
-    
+
     // Prioritas UTAMA: Cek key "image/jpeg" (Cover Medium)
     if (formats.containsKey('image/jpeg')) {
       imgUrl = formats['image/jpeg'];
-    } 
+    }
     // Fallback 1: Cek key "image/png" jika jpeg tidak ada
     else if (formats.containsKey('image/png')) {
       imgUrl = formats['image/png'];
@@ -124,7 +126,8 @@ class DigitalBook extends Book {
     // Fallback 2: Cari key lain yang mengandung kata 'cover' atau 'image/'
     else {
       for (var key in formats.keys) {
-        if (key.toString().contains('cover') || key.toString().contains('image/')) {
+        if (key.toString().contains('cover') ||
+            key.toString().contains('image/')) {
           imgUrl = formats[key];
           break;
         }
@@ -137,14 +140,14 @@ class DigitalBook extends Book {
     }
 
     // 3. Cari URL EPUB
-    String epubUrl = formats['application/epub+zip'] ?? 
-                     formats['application/epub3+zip'] ??
-                     '';
+    String epubUrl = formats['application/epub+zip'] ??
+        formats['application/epub3+zip'] ??
+        '';
 
     // 4. Ambil Deskripsi
     List<dynamic> summaries = json['summaries'] ?? [];
-    String desc = summaries.isNotEmpty 
-        ? summaries.join('\n\n') 
+    String desc = summaries.isNotEmpty
+        ? summaries.join('\n\n')
         : 'No description available.';
 
     return DigitalBook(
@@ -157,7 +160,10 @@ class DigitalBook extends Book {
       imgUrl,
       epubUrl,
       downloads: json['download_count'] ?? 0,
-      languages: (json['languages'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      languages: (json['languages'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
       rating: _generateRating(json['download_count'] ?? 0),
     );
   }
@@ -203,4 +209,41 @@ class DigitalBook extends Book {
         _languages,
         _rating,
       ];
+}
+
+// --- CLASS BARU: BOOK COLLECTION (PLAYLIST) ---
+class BookCollection {
+  String id;
+  String name;
+  String description;
+  List<DigitalBook> books;
+  List<String> bookIds;
+
+  BookCollection({
+    required this.id,
+    required this.name,
+    this.description = '',
+    this.books = const [],
+    this.bookIds = const [],
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'books': books.map((b) => b.toJson()).toList(),
+      'bookIds': bookIds,
+    };
+  }
+
+  factory BookCollection.fromJson(Map<String, dynamic> json) {
+    return BookCollection(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String? ?? '',
+      books: const [],
+      bookIds: List<String>.from(json['bookIds'] as List? ?? []),
+    );
+  }
 }
