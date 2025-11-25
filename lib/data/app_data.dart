@@ -11,70 +11,8 @@ class AppData {
     User('sanggalie', 'nasipecel', 'sanggalie@email.com'),
   ];
 
-  // Dummy Data disesuaikan dengan Constructor DigitalBook baru:
-  // DigitalBook(id, title, author, year, category, description, imageUrl, epubUrl, {downloads, languages})
-  static List<DigitalBook> books = [
-    DigitalBook(
-      1001,
-      'The Art of Code',
-      'Alexander Sterling',
-      2024,
-      'Programming',
-      'Master the elegant craft of writing beautiful, maintainable code.',
-      'https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=300&fit=crop',
-      '', // Kosongkan epubUrl untuk dummy
-      downloads: 12500,
-      languages: ['en'],
-    ),
-    DigitalBook(
-      1002,
-      'Quantum Computing',
-      'Dr. Elena Vasquez',
-      2023,
-      'Science',
-      'Journey through the revolutionary world of quantum computing.',
-      'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=300&fit=crop',
-      '',
-      downloads: 8900,
-      languages: ['en'],
-    ),
-    DigitalBook(
-      1003,
-      'Digital Strategy',
-      'Marcus Chen',
-      2024,
-      'Business',
-      'Build and scale your digital business.',
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&fit=crop',
-      '',
-      downloads: 15200,
-      languages: ['en'],
-    ),
-    DigitalBook(
-      1004,
-      'Machine Learning',
-      'Sarah Thompson',
-      2023,
-      'Technology',
-      'Deep dive into artificial intelligence.',
-      'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&fit=crop',
-      '',
-      downloads: 22100,
-      languages: ['fr'],
-    ),
-    DigitalBook(
-      1005,
-      'Astrophysics Today',
-      'Prof. James Wright',
-      2024,
-      'Science',
-      'Explore the vast universe.',
-      'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=300&fit=crop',
-      '',
-      downloads: 7800,
-      languages: ['en'],
-    ),
-  ];
+  // All books are loaded from API - no dummy data
+  static List<DigitalBook> books = [];
 
   static User? currentUser;
   static Set<String> favoriteBooks = {}; // Simpan ID saja untuk favorites

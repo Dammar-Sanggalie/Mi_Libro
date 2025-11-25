@@ -1,15 +1,5 @@
-// lib/screens/home_screen.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:perpustakaan_mini/screens/categories_screen.dart';
-// <-- PERUBAHAN: Hapus impor provider yang tidak perlu
-// import 'package:perpustakaan_mini/cubit/book_library_cubit.dart';
-// import 'package:perpustakaan_mini/cubit/book_search_cubit.dart';
-// import 'package:perpustakaan_mini/repositories/api_book_repository.dart';
-// import 'package:perpustakaan_mini/repositories/book_repository.dart';
-import 'book_library_screen.dart';
-import '../widgets/compact_book_card.dart';
+import '../screens/book_library_screen.dart';
 import 'package:perpustakaan_mini/screens/favorites_screen.dart';
 import 'package:perpustakaan_mini/screens/profile_screen.dart';
 
@@ -18,20 +8,23 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
     BookLibraryScreen(),
-    CategoriesScreen(),
     FavoritesScreen(),
     ProfileScreen(),
   ];
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // --- PERUBAHAN: HAPUS SEMUA PROVIDER DARI SINI ---
-    // Provider sekarang ditangani di main.dart
     return Scaffold(
       body: _screens[_currentIndex],
       extendBody: true,
@@ -54,9 +47,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: BottomNavigationBar(
-            // ... (sisa BottomNavigationBar Anda tetap sama)
             currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
+            onTap: _onItemTapped,
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.transparent,
             selectedItemColor: Color(0xFF6366F1),
@@ -68,10 +60,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_rounded),
                 label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.explore_rounded),
-                label: 'Explore',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.favorite_rounded),
