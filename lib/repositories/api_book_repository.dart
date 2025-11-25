@@ -24,7 +24,8 @@ class ApiBookRepository implements BookRepository {
   }
 
   @override
-  Future<List<DigitalBook>> getInitialBooks({required int offset, required int number}) async {
+  Future<BookPage> getInitialBooks(
+      {required int offset, required int number}) async {
     try {
       // LOGIC PAGINATION:
       // Gutendex menggunakan sistem 'page' (1 page = 32 buku).
@@ -44,17 +45,23 @@ class ApiBookRepository implements BookRepository {
       if (response.statusCode == 200) {
         final data = response.data;
         final List results = data['results'] ?? [];
-        
+        // AMBIL TOTAL COUNT DARI API
+        final int totalCount = data['count'] ?? 0;
+
         // Filter hanya buku yang punya file EPUB (biar bisa dibaca)
         final books = results
             .map((e) => DigitalBook.fromGutendex(e))
             .where((book) => book.isReadable) // Hanya ambil yang bisa dibaca
             .toList();
 
-        print('[Gutendex] Success: Got ${books.length} books.');
-        return books;
+        print(
+            '[Gutendex] Success: Got ${books.length} books. Total available: $totalCount');
+
+        // Return objek BookPage dengan total count
+        return BookPage(books: books, totalCount: totalCount);
       } else {
-        throw Exception('Failed to load books (Status: ${response.statusCode})');
+        throw Exception(
+            'Failed to load books (Status: ${response.statusCode})');
       }
     } on DioException catch (e) {
       print('[Gutendex] DioError: ${e.message}');

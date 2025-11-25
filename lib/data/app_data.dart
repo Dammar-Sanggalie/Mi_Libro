@@ -11,8 +11,6 @@ class AppData {
     User('sanggalie', 'nasipecel', 'sanggalie@email.com'),
   ];
 
-  // Dummy Data disesuaikan dengan Constructor DigitalBook baru:
-  // DigitalBook(id, title, author, year, category, description, imageUrl, epubUrl, {downloads, languages})
   static List<DigitalBook> books = [
     DigitalBook(
       1001,
@@ -22,7 +20,7 @@ class AppData {
       'Programming',
       'Master the elegant craft of writing beautiful, maintainable code.',
       'https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=300&fit=crop',
-      '', // Kosongkan epubUrl untuk dummy
+      '',
       downloads: 12500,
       languages: ['en'],
     ),
@@ -77,8 +75,13 @@ class AppData {
   ];
 
   static User? currentUser;
-  static Set<String> favoriteBooks = {}; // Simpan ID saja untuk favorites
-  static List<DigitalBook> favoriteBooksData = []; // Simpan full data favorit
+
+  // Favorites Data
+  static Set<String> favoriteBooks = {}; // Simpan ID saja
+  static List<DigitalBook> favoriteBooksData = []; // Simpan full data
+
+  // --- NEW: Playlist Collections ---
+  static List<BookCollection> userCollections = [];
 
   static List<Color> primaryColors = [
     Color(0xFF6366F1), // Indigo
@@ -95,6 +98,7 @@ class AppData {
     Color(0xFFF97316), // Orange
   ];
 
+  // --- FAVORITES MANAGEMENT ---
   static Future<void> saveFavorites() async {
     final prefs = await SharedPreferences.getInstance();
     // Simpan ID saja
@@ -147,7 +151,47 @@ class AppData {
     }
   }
 
-  // Rating menggunakan bookId sebagai key, bukan title
+  // --- COLLECTION / PLAYLIST MANAGEMENT ---
+  static Future<void> saveCollections() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encodedData = jsonEncode(
+      userCollections.map((c) => c.toJson()).toList(),
+    );
+    await prefs.setString('userCollections', encodedData);
+  }
+
+  static Future<void> loadCollections() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? encodedData = prefs.getString('userCollections');
+
+    userCollections = [];
+    if (encodedData != null) {
+      try {
+        final List<dynamic> decodedList = jsonDecode(encodedData);
+        userCollections =
+            decodedList.map((item) => BookCollection.fromJson(item)).toList();
+      } catch (e) {
+        print('Error loading collections: $e');
+      }
+    }
+  }
+
+  // Helper: Ambil object DigitalBook berdasarkan ID
+  static DigitalBook? getBookById(String id) {
+    // Cari di favoriteBooksData dulu (karena ini data lokal paling lengkap)
+    try {
+      return favoriteBooksData.firstWhere((b) => b.id.toString() == id);
+    } catch (e) {
+      // Jika tidak ada di favorit, cari di dummy books
+      try {
+        return books.firstWhere((b) => b.id.toString() == id);
+      } catch (e) {
+        return null;
+      }
+    }
+  }
+
+  // --- RATINGS MANAGEMENT ---
   static Map<String, double> userRatings = {};
 
   static Future<void> saveRating(String bookId, double rating) async {
@@ -172,19 +216,24 @@ class AppData {
     return userRatings[bookId] ?? 0.0;
   }
 
-  // Method untuk ensure data selalu ter-load dari SharedPreferences
+  // Initialization
   static Future<void> initializeAppData() async {
     await loadFavorites();
     await loadRatings();
+    await loadCollections(); // Load collections juga
   }
 
   // Clear all saved data (for debugging/reset)
   static Future<void> clearAllData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('favoriteBooks');
+    await prefs.remove('favoriteBooksData');
     await prefs.remove('userRatings');
+    await prefs.remove('userCollections');
     favoriteBooks.clear();
+    favoriteBooksData.clear();
     userRatings.clear();
+    userCollections.clear();
   }
 
   static List<String> get categories {
