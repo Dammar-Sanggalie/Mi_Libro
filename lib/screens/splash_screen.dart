@@ -27,46 +27,46 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Main animation controller
     _controller = AnimationController(
-      duration: Duration(milliseconds: 2500),
+      duration: const Duration(milliseconds: 2500),
       vsync: this,
     );
 
     // Pulse animation for logo
     _pulseController = AnimationController(
-      duration: Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
     // Rotate animation for decorative elements
     _rotateController = AnimationController(
-      duration: Duration(seconds: 20),
+      duration: const Duration(seconds: 20),
       vsync: this,
     );
 
     // Shimmer animation
     _shimmerController = AnimationController(
-      duration: Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(0.0, 0.5, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
       ),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(0.0, 0.7, curve: Curves.easeOutBack),
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
       ),
     );
 
     _slideAnimation = Tween<double>(begin: 50, end: 0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(0.3, 0.8, curve: Curves.easeOutCubic),
+        curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -86,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
     _rotateController.repeat();
     _shimmerController.repeat(reverse: true);
 
-    Timer(Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -99,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen>
                 opacity: animation,
                 child: SlideTransition(
                   position: Tween<Offset>(
-                    begin: Offset(0, 0.1),
+                    begin: const Offset(0, 0.1),
                     end: Offset.zero,
                   ).animate(CurvedAnimation(
                     parent: animation,
@@ -109,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               );
             },
-            transitionDuration: Duration(milliseconds: 800),
+            transitionDuration: const Duration(milliseconds: 800),
           ),
         );
       }
@@ -129,7 +129,7 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -174,13 +174,13 @@ class _SplashScreenState extends State<SplashScreen>
                                         borderRadius: BorderRadius.circular(40),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Color(0xFF6366F1)
+                                            color: const Color(0xFF6366F1)
                                                 .withOpacity(0.5),
                                             blurRadius: 60,
                                             spreadRadius: 20,
                                           ),
                                           BoxShadow(
-                                            color: Color(0xFF8B5CF6)
+                                            color: const Color(0xFF8B5CF6)
                                                 .withOpacity(0.3),
                                             blurRadius: 80,
                                             spreadRadius: 30,
@@ -197,7 +197,7 @@ class _SplashScreenState extends State<SplashScreen>
                                             width: 160,
                                             height: 160,
                                             decoration: BoxDecoration(
-                                              gradient: LinearGradient(
+                                              gradient: const LinearGradient(
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                                 colors: [
@@ -209,7 +209,7 @@ class _SplashScreenState extends State<SplashScreen>
                                               borderRadius:
                                                   BorderRadius.circular(40),
                                             ),
-                                            child: Icon(
+                                            child: const Icon(
                                               Icons.auto_stories_rounded,
                                               size: 80,
                                               color: Colors.white,
@@ -225,7 +225,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
 
-                        SizedBox(height: 56),
+                        const SizedBox(height: 56),
 
                         // App Name with shimmer effect
                         Transform.translate(
@@ -241,13 +241,13 @@ class _SplashScreenState extends State<SplashScreen>
                                   colors: [
                                     Colors.white.withOpacity(0.3),
                                     Colors.white,
-                                    Color(0xFF6366F1),
-                                    Color(0xFF8B5CF6),
+                                    const Color(0xFF6366F1),
+                                    const Color(0xFF8B5CF6),
                                     Colors.white.withOpacity(0.3),
                                   ],
                                   stops: [0.0, 0.3, 0.5, 0.7, 1.0],
                                 ).createShader(bounds),
-                                child: Text(
+                                child: const Text(
                                   'Digital Libary',
                                   style: TextStyle(
                                     fontSize: 38,
@@ -263,21 +263,21 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
 
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
                         // Tagline
                         Transform.translate(
                           offset: Offset(0, _slideAnimation.value * 0.5),
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 28,
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Color(0xFF6366F1).withOpacity(0.2),
-                                  Color(0xFF8B5CF6).withOpacity(0.2),
+                                  const Color(0xFF6366F1).withOpacity(0.2),
+                                  const Color(0xFF8B5CF6).withOpacity(0.2),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(25),
@@ -294,7 +294,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   size: 16,
                                   color: Colors.white.withOpacity(0.8),
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
                                   'Digital Excellence',
                                   style: TextStyle(
@@ -309,7 +309,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
 
-                        SizedBox(height: 100),
+                        const SizedBox(height: 100),
 
                         // Loading indicator with custom design
                         Transform.translate(
@@ -322,7 +322,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 height: 50,
                                 child: CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFF6366F1).withOpacity(0.3),
+                                    const Color(0xFF6366F1).withOpacity(0.3),
                                   ),
                                   strokeWidth: 2,
                                 ),
@@ -332,7 +332,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 height: 38,
                                 child: CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFF8B5CF6).withOpacity(0.5),
+                                    const Color(0xFF8B5CF6).withOpacity(0.5),
                                   ),
                                   strokeWidth: 2,
                                 ),
@@ -341,7 +341,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
 
-                        SizedBox(height: 50),
+                        const SizedBox(height: 50),
 
                         // Footer text with fade
                         Transform.translate(
@@ -358,7 +358,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   fontWeight: FontWeight.w300,
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Text(
                                 'v1.0.0',
                                 style: TextStyle(
@@ -401,8 +401,8 @@ class _SplashScreenState extends State<SplashScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        Color(0xFF6366F1).withOpacity(0.15),
-                        Color(0xFF6366F1).withOpacity(0.05),
+                        const Color(0xFF6366F1).withOpacity(0.15),
+                        const Color(0xFF6366F1).withOpacity(0.05),
                         Colors.transparent,
                       ],
                       stops: [0.0, 0.5, 1.0],
@@ -430,8 +430,8 @@ class _SplashScreenState extends State<SplashScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        Color(0xFF8B5CF6).withOpacity(0.15),
-                        Color(0xFF8B5CF6).withOpacity(0.05),
+                        const Color(0xFF8B5CF6).withOpacity(0.15),
+                        const Color(0xFF8B5CF6).withOpacity(0.05),
                         Colors.transparent,
                       ],
                       stops: [0.0, 0.5, 1.0],
@@ -452,7 +452,7 @@ class _SplashScreenState extends State<SplashScreen>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Color(0xFFEC4899).withOpacity(0.08),
+                  const Color(0xFFEC4899).withOpacity(0.08),
                   Colors.transparent,
                 ],
               ),

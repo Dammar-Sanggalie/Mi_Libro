@@ -4,12 +4,30 @@ import '../models/book_model.dart';
 import '../widgets/compact_book_card.dart';
 
 // Enhanced Favorites Screen
-class FavoritesScreen extends StatelessWidget {
+class FavoritesScreen extends StatefulWidget {
+  @override
+  _FavoritesScreenState createState() => _FavoritesScreenState();
+}
+
+class _FavoritesScreenState extends State<FavoritesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Reload favorites saat screen dibuka
+    _reloadFavorites();
+  }
+
+  Future<void> _reloadFavorites() async {
+    await AppData.loadFavorites();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<DigitalBook> favoriteBooks = AppData.books
-        .where((book) => AppData.favoriteBooks.contains(book.title))
-        .toList();
+    // Gunakan favoriteBooksData yang sudah disimpan dengan full data
+    List<DigitalBook> favoriteBooks = AppData.favoriteBooksData;
 
     return Scaffold(
       body: Container(

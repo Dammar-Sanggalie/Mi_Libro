@@ -14,8 +14,8 @@ void main() async {
   // ... (kode async Anda tetap sama)
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
-  await AppData.loadFavorites();
-  await AppData.loadRatings();
+  await AppData
+      .initializeAppData(); // Load favorit dan rating dari SharedPreferences
 
   final ApiBookRepository apiBookRepository = ApiBookRepository();
 
@@ -32,7 +32,7 @@ void main() async {
             create: (context) => BookLibraryCubit(apiBookRepository),
           ),
         ],
-        child: MyApp(),
+        child: const MyApp(),
       ),
     ),
   );
