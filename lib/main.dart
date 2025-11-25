@@ -32,7 +32,7 @@ void main() async {
             create: (context) => BookLibraryCubit(apiBookRepository),
           ),
         ],
-        child: MyApp(),
+        child: const MyApp(),
       ),
     ),
   );

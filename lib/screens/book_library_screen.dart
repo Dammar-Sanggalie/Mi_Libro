@@ -7,6 +7,7 @@ import '../data/app_data.dart';
 import '../models/user_model.dart';
 import '../widgets/compact_book_card.dart';
 import '../widgets/search_delegate.dart';
+import '../widgets/sort_filter_controls.dart';
 
 class BookLibraryScreen extends StatefulWidget {
   @override
@@ -545,27 +546,35 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                           childAspectRatio = 0.65;
                         }
 
-                        return Padding(
-                          padding: EdgeInsets.fromLTRB(16, 0, 16, 120),
-                          child: GridView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              childAspectRatio: childAspectRatio,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 16,
+                        return Column(
+                          children: [
+                            // Sort and Filter Controls from dammar-dev
+                            SortFilterControls(),
+                            SizedBox(height: 16),
+                            // Books Grid from randy-dev (cleaner implementation)
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(16, 0, 16, 120),
+                              child: GridView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  childAspectRatio: childAspectRatio,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 16,
+                                ),
+                                itemCount: filteredBooks.length,
+                                itemBuilder: (context, index) {
+                                  return CompactBookCard(
+                                    book: filteredBooks[index],
+                                    colorIndex:
+                                        index % AppData.primaryColors.length,
+                                  );
+                                },
+                              ),
                             ),
-                            itemCount: filteredBooks.length,
-                            itemBuilder: (context, index) {
-                              return CompactBookCard(
-                                book: filteredBooks[index],
-                                colorIndex:
-                                    index % AppData.primaryColors.length,
-                              );
-                            },
-                          ),
+                          ],
                         );
                       }
 
