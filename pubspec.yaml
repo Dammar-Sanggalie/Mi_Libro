@@ -13,10 +13,9 @@ dependencies:
   url_launcher: ^6.1.14
   cupertino_icons: ^1.0.6
   shared_preferences: ^2.5.3
-  getwidget: any  # Added getwidget package
+  getwidget: any
   flutter_bloc: ^8.1.5
-  internet_file: ^1.2.0  # Untuk mendownload/stream file EPUB dari URL
-  # http: ^1.2.1
+  internet_file: ^1.2.0
   dio: ^5.4.3+1
   equatable: ^2.0.5
   epub_view: ^3.0.1
