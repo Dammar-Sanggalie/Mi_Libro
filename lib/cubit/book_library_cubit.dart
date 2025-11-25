@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:perpustakaan_mini/models/book_model.dart';
+import 'package:perpustakaan_mini/models/sort_option.dart';
 import 'package:perpustakaan_mini/repositories/book_repository.dart';
 
 part 'book_library_state.dart';
@@ -10,9 +11,14 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
 
   // State lokal untuk menampung data
   List<DigitalBook> _books = [];
+  List<DigitalBook> _allBooks = []; // Menyimpan semua buku untuk filtering
   int _offset = 0;
   final int _limit = 18; // Jumlah buku per halaman (batch)
   bool _isFetching = false; // Penanda agar tidak fetch ganda
+  
+  // Filter dan sorting options
+  SortOption _currentSort = SortOption.popularity;
+  RatingFilter _currentRatingFilter = RatingFilter.all;
 
   BookLibraryCubit(this._bookRepository) : super(BookLibraryInitial());
 
@@ -20,6 +26,7 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
   Future<void> fetchInitialBooks() async {
     // Reset state lokal
     _books = [];
+    _allBooks = [];
     _offset = 0;
     _isFetching = true;
 
@@ -34,11 +41,13 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
       print('CUBIT (Library): Success, ${newBooks.length} books found.');
 
       // Masukkan ke list lokal
-      _books.addAll(newBooks);
+      _allBooks.addAll(newBooks);
       _offset += newBooks.length;
 
-      // Emit state Loaded dengan list baru
-      // (Di sini _books baru saja di-reset jadi [] di atas, jadi aman)
+      // Apply filters and sorting
+      _applyFiltersAndSort();
+
+      // Emit state Loaded dengan list yang sudah difilter
       emit(BookLibraryLoaded(_books, hasReachedMax: newBooks.length < _limit));
     } catch (e) {
       print('--- CUBIT (Library) ERROR ---');
@@ -77,18 +86,15 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
           // Jika tidak ada data baru, update hasReachedMax = true
           emit(BookLibraryLoaded(currentState.books, hasReachedMax: true));
         } else {
-          // --- PERBAIKAN UTAMA DI SINI ---
-          // Buat instance List baru yang berisi gabungan data lama + baru
-          // Teknik ini memastikan Equatable mendeteksi perubahan state
-          final List<DigitalBook> updatedBooks = List.from(_books)
-            ..addAll(newBooks);
-
-          // Update variabel lokal
-          _books = updatedBooks;
+          // Add new books to _allBooks
+          _allBooks.addAll(newBooks);
           _offset += newBooks.length;
 
+          // Apply filters and sorting again
+          _applyFiltersAndSort();
+
           // Emit state dengan List yang BARU
-          emit(BookLibraryLoaded(updatedBooks,
+          emit(BookLibraryLoaded(List.from(_books),
               hasReachedMax: newBooks.length < _limit));
         }
       } catch (e) {
@@ -96,7 +102,6 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
         print(e.toString());
 
         // Jika gagal, kembalikan state sebelumnya agar UI tidak error
-        // Kita gunakan List.from(_books) untuk keamanan ekstra
         emit(BookLibraryLoaded(List.from(_books),
             hasReachedMax: currentState.hasReachedMax));
       }
@@ -104,4 +109,56 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
 
     _isFetching = false;
   }
+
+  // 3. Fungsi untuk mengubah sorting
+  void changeSorting(SortOption newSort) {
+    _currentSort = newSort;
+    _applyFiltersAndSort();
+    emit(BookLibraryLoaded(List.from(_books), hasReachedMax: false));
+  }
+
+  // 4. Fungsi untuk mengubah filter rating
+  void changeRatingFilter(RatingFilter newFilter) {
+    _currentRatingFilter = newFilter;
+    _applyFiltersAndSort();
+    emit(BookLibraryLoaded(List.from(_books), hasReachedMax: false));
+  }
+
+  // 5. Apply filters and sorting
+  void _applyFiltersAndSort() {
+    // Start with all books
+    List<DigitalBook> filteredBooks = List.from(_allBooks);
+
+    // Apply rating filter
+    if (_currentRatingFilter != RatingFilter.all) {
+      filteredBooks = filteredBooks
+          .where((book) => book.rating >= _currentRatingFilter.minimumRating)
+          .toList();
+    }
+
+    // Apply sorting
+    switch (_currentSort) {
+      case SortOption.popularity:
+        filteredBooks.sort((a, b) => b.downloads.compareTo(a.downloads));
+        break;
+      case SortOption.titleAZ:
+        filteredBooks.sort((a, b) => a.title.compareTo(b.title));
+        break;
+      case SortOption.titleZA:
+        filteredBooks.sort((a, b) => b.title.compareTo(a.title));
+        break;
+      case SortOption.newest:
+        filteredBooks.sort((a, b) => b.year.compareTo(a.year));
+        break;
+      case SortOption.oldest:
+        filteredBooks.sort((a, b) => a.year.compareTo(b.year));
+        break;
+    }
+
+    _books = filteredBooks;
+  }
+
+  // Getters for current state
+  SortOption get currentSort => _currentSort;
+  RatingFilter get currentRatingFilter => _currentRatingFilter;
 }

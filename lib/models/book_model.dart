@@ -49,6 +49,7 @@ class DigitalBook extends Book {
   final String _epubUrl;
   final int _downloads;
   final List<String> _languages;
+  final double _rating;
 
   DigitalBook(
     this._id,
@@ -61,8 +62,10 @@ class DigitalBook extends Book {
     this._epubUrl, {
     int downloads = 0,
     List<String> languages = const [],
+    double rating = 0.0,
   })  : _downloads = downloads,
         _languages = languages,
+        _rating = rating,
         super(title, author, year, category, description);
 
   // --- PARSING LOGIC ---
@@ -88,6 +91,19 @@ class DigitalBook extends Book {
       return subjects[0].toString().split('--')[0].trim();
     }
     return 'General';
+  }
+
+  // Generate rating berdasarkan download count (simulasi rating)
+  static double _generateRating(int downloads) {
+    if (downloads > 10000) return 5.0;
+    if (downloads > 5000) return 4.5;
+    if (downloads > 2000) return 4.0;
+    if (downloads > 1000) return 3.5;
+    if (downloads > 500) return 3.0;
+    if (downloads > 100) return 2.5;
+    if (downloads > 50) return 2.0;
+    if (downloads > 10) return 1.5;
+    return 1.0;
   }
 
   factory DigitalBook.fromGutendex(Map<String, dynamic> json) {
@@ -142,6 +158,7 @@ class DigitalBook extends Book {
       epubUrl,
       downloads: json['download_count'] ?? 0,
       languages: (json['languages'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      rating: _generateRating(json['download_count'] ?? 0),
     );
   }
 
@@ -150,6 +167,7 @@ class DigitalBook extends Book {
   String get epubUrl => _epubUrl;
   int get downloads => _downloads;
   List<String> get languages => _languages;
+  double get rating => _rating;
 
   String getFormattedDownloads() {
     return NumberFormat.compact(locale: 'en_US').format(_downloads);
@@ -171,6 +189,7 @@ class DigitalBook extends Book {
       'epubUrl': _epubUrl,
       'downloads': _downloads,
       'languages': _languages,
+      'rating': _rating,
     };
   }
 
@@ -182,5 +201,6 @@ class DigitalBook extends Book {
         _epubUrl,
         _downloads,
         _languages,
+        _rating,
       ];
 }

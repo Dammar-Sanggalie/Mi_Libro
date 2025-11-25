@@ -5,6 +5,7 @@ import '../data/app_data.dart';
 import '../models/book_model.dart';
 import '../widgets/compact_book_card.dart';
 import '../widgets/search_delegate.dart';
+import '../widgets/sort_filter_controls.dart';
 
 // Book Library Screen - Sekarang memuat data dari API
 class BookLibraryScreen extends StatefulWidget {
@@ -269,6 +270,8 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
 
                         return Column(
                           children: [
+                            // Sort and Filter Controls
+                            SortFilterControls(),
                             // Categories - Dinamis
                             Container(
                               height: 42,

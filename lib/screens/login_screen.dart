@@ -29,36 +29,36 @@ class _LoginScreenState extends State<LoginScreen>
     super.initState();
 
     _animationController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
     _floatingController = AnimationController(
-      duration: Duration(seconds: 3),
+      duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Interval(0.0, 0.6, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: Offset(0, 0.3),
+      begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+        curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
       ),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Interval(0.0, 0.6, curve: Curves.easeOutBack),
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
       ),
     );
 
@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      await Future.delayed(Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 800));
 
       String username = _usernameController.text.trim();
       String password = _passwordController.text;
@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen>
                   opacity: animation,
                   child: SlideTransition(
                     position: Tween<Offset>(
-                      begin: Offset(1.0, 0.0),
+                      begin: const Offset(1.0, 0.0),
                       end: Offset.zero,
                     ).animate(CurvedAnimation(
                       parent: animation,
@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                 );
               },
-              transitionDuration: Duration(milliseconds: 600),
+              transitionDuration: const Duration(milliseconds: 600),
             ),
           );
         } else {
@@ -164,14 +164,14 @@ class _LoginScreenState extends State<LoginScreen>
               isError ? Icons.error_outline : Icons.check_circle_outline,
               color: Colors.white,
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: isError ? Color(0xFFEF4444) : Color(0xFF10B981),
+        backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -197,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen>
             SafeArea(
               child: Center(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: FadeTransition(
                     opacity: _fadeAnimation,
                     child: SlideTransition(
@@ -205,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           ScaleTransition(
                             scale: _scaleAnimation,
                             child: Hero(
@@ -215,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   borderRadius: BorderRadius.circular(32),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Color(0xFF6366F1).withOpacity(0.4),
+                                      color: const Color(0xFF6366F1).withOpacity(0.4),
                                       blurRadius: 40,
                                       spreadRadius: 10,
                                     ),
@@ -230,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen>
                                       width: 140,
                                       height: 140,
                                       decoration: BoxDecoration(
-                                        gradient: LinearGradient(
+                                        gradient: const LinearGradient(
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                           colors: [
@@ -241,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         ),
                                         borderRadius: BorderRadius.circular(32),
                                       ),
-                                      child: Icon(
+                                      child: const Icon(
                                         Icons.auto_stories_rounded,
                                         size: 70,
                                         color: Colors.white,
@@ -252,9 +252,9 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ),
                           ),
-                          SizedBox(height: 48),
+                          const SizedBox(height: 48),
                           ShaderMask(
-                            shaderCallback: (bounds) => LinearGradient(
+                            shaderCallback: (bounds) => const LinearGradient(
                               colors: [
                                 Color(0xFF6366F1),
                                 Color(0xFF8B5CF6),
@@ -263,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ).createShader(bounds),
                             child: Text(
                               _isLogin ? 'Welcome Back' : 'Create Account',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -271,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ),
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Text(
                             _isLogin
                                 ? 'Sign in to continue your reading journey'
@@ -284,9 +284,9 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          SizedBox(height: 48),
+                          const SizedBox(height: 48),
                           Container(
-                            padding: EdgeInsets.all(32),
+                            padding: const EdgeInsets.all(32),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(28),
@@ -298,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.2),
                                   blurRadius: 30,
-                                  offset: Offset(0, 15),
+                                  offset: const Offset(0, 15),
                                 ),
                               ],
                             ),
@@ -314,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         ? 'Username required'
                                         : null,
                                   ),
-                                  SizedBox(height: 20),
+                                  const SizedBox(height: 20),
                                   _buildModernTextField(
                                     controller: _passwordController,
                                     label: 'Password',
@@ -329,9 +329,9 @@ class _LoginScreenState extends State<LoginScreen>
                                       return null;
                                     },
                                   ),
-                                  SizedBox(height: 36),
+                                  const SizedBox(height: 36),
                                   _buildGradientButton(),
-                                  SizedBox(height: 28),
+                                  const SizedBox(height: 28),
                                   Row(
                                     children: [
                                       Expanded(
@@ -348,7 +348,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         ),
                                       ),
                                       Padding(
-                                        padding: EdgeInsets.symmetric(
+                                        padding: const EdgeInsets.symmetric(
                                             horizontal: 16),
                                         child: Text(
                                           'or',
@@ -375,15 +375,15 @@ class _LoginScreenState extends State<LoginScreen>
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 28),
+                                  const SizedBox(height: 28),
                                   _buildAuthToggle(),
                                 ],
                               ),
                             ),
                           ),
-                          SizedBox(height: 32),
+                          const SizedBox(height: 32),
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Text(
                               'By continuing, you agree to our Terms & Privacy Policy',
                               style: TextStyle(
@@ -393,7 +393,7 @@ class _LoginScreenState extends State<LoginScreen>
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
@@ -425,7 +425,7 @@ class _LoginScreenState extends State<LoginScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        Color(0xFF6366F1).withOpacity(0.15),
+                        const Color(0xFF6366F1).withOpacity(0.15),
                         Colors.transparent,
                       ],
                     ),
@@ -450,7 +450,7 @@ class _LoginScreenState extends State<LoginScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        Color(0xFF8B5CF6).withOpacity(0.15),
+                        const Color(0xFF8B5CF6).withOpacity(0.15),
                         Colors.transparent,
                       ],
                     ),
@@ -483,7 +483,7 @@ class _LoginScreenState extends State<LoginScreen>
       child: TextFormField(
         controller: controller,
         obscureText: isPassword && _obscureText,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 15,
           fontWeight: FontWeight.w500,
@@ -496,10 +496,10 @@ class _LoginScreenState extends State<LoginScreen>
             fontWeight: FontWeight.w400,
           ),
           prefixIcon: Container(
-            margin: EdgeInsets.only(right: 12),
+            margin: const EdgeInsets.only(right: 12),
             child: Icon(
               icon,
-              color: Color(0xFF6366F1).withOpacity(0.7),
+              color: const Color(0xFF6366F1).withOpacity(0.7),
               size: 22,
             ),
           ),
@@ -516,7 +516,7 @@ class _LoginScreenState extends State<LoginScreen>
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           floatingLabelBehavior: FloatingLabelBehavior.auto,
         ),
         validator: validator,
@@ -529,7 +529,7 @@ class _LoginScreenState extends State<LoginScreen>
       width: double.infinity,
       height: 58,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
             Color(0xFF6366F1),
             Color(0xFF8B5CF6),
@@ -541,9 +541,9 @@ class _LoginScreenState extends State<LoginScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF6366F1).withOpacity(0.4),
+            color: const Color(0xFF6366F1).withOpacity(0.4),
             blurRadius: 25,
-            offset: Offset(0, 12),
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -554,7 +554,7 @@ class _LoginScreenState extends State<LoginScreen>
           borderRadius: BorderRadius.circular(16),
           child: Center(
             child: _isLoading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 24,
                     height: 24,
                     child: CircularProgressIndicator(
@@ -564,7 +564,7 @@ class _LoginScreenState extends State<LoginScreen>
                   )
                 : Text(
                     _isLogin ? 'Sign In' : 'Create Account',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -582,7 +582,7 @@ class _LoginScreenState extends State<LoginScreen>
     return GestureDetector(
       onTap: _toggleAuthMode,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
@@ -606,9 +606,9 @@ class _LoginScreenState extends State<LoginScreen>
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            SizedBox(width: 6),
+            const SizedBox(width: 6),
             ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
+              shaderCallback: (bounds) => const LinearGradient(
                 colors: [
                   Color(0xFF6366F1),
                   Color(0xFF8B5CF6),
@@ -616,22 +616,22 @@ class _LoginScreenState extends State<LoginScreen>
               ).createShader(bounds),
               child: Text(
                 _isLogin ? 'Sign Up' : 'Sign In',
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                   fontSize: 13,
                 ),
               ),
             ),
-            SizedBox(width: 4),
+            const SizedBox(width: 4),
             ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
+              shaderCallback: (bounds) => const LinearGradient(
                 colors: [
                   Color(0xFF6366F1),
                   Color(0xFF8B5CF6),
                 ],
               ).createShader(bounds),
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_forward_rounded,
                 size: 16,
                 color: Colors.white,

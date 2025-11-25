@@ -205,7 +205,27 @@ class CompactBookCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 3),
+                            // Rating Row
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.star_rounded,
+                                  size: 8,
+                                  color: Colors.amber.shade300,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  book.rating.toStringAsFixed(1),
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 7.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
                             // Footer (Category & Download)
                             Row(
                               children: [
