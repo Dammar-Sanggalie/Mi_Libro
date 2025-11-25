@@ -7,8 +7,10 @@ import '../widgets/compact_book_card.dart';
 class FavoritesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Gunakan favoritedBooks yang sudah menyimpan buku lengkap
-    List<DigitalBook> favoriteBooks = AppData.favoritedBooks;
+    // Filter buku favorit dari AppData.books berdasarkan favoriteBooks (Set<String>)
+    List<DigitalBook> favoriteBooks = AppData.books
+        .where((book) => AppData.favoriteBooks.contains(book.title))
+        .toList();
 
     return Scaffold(
       body: Container(
