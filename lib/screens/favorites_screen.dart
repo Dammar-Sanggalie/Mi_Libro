@@ -26,10 +26,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter buku favorit dari AppData.books berdasarkan favoriteBooks (Set<String>)
-    List<DigitalBook> favoriteBooks = AppData.books
-        .where((book) => AppData.favoriteBooks.contains(book.title))
-        .toList();
+    // Gunakan favoriteBooksData yang sudah disimpan dengan full data
+    List<DigitalBook> favoriteBooks = AppData.favoriteBooksData;
 
     return Scaffold(
       body: Container(

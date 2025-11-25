@@ -77,7 +77,8 @@ class AppData {
   ];
 
   static User? currentUser;
-  static Set<String> favoriteBooks = {};
+  static Set<String> favoriteBooks = {}; // Simpan ID saja untuk favorites
+  static List<DigitalBook> favoriteBooksData = []; // Simpan full data favorit
 
   static List<Color> primaryColors = [
     Color(0xFF6366F1), // Indigo
@@ -96,21 +97,62 @@ class AppData {
 
   static Future<void> saveFavorites() async {
     final prefs = await SharedPreferences.getInstance();
+    // Simpan ID saja
     await prefs.setStringList('favoriteBooks', favoriteBooks.toList());
+    // Simpan full data favorit sebagai JSON
+    final jsonBooks = favoriteBooksData
+        .map((book) => jsonEncode({
+              'id': book.id,
+              'title': book.title,
+              'author': book.author,
+              'year': book.year,
+              'category': book.category,
+              'description': book.description,
+              'imageUrl': book.imageUrl,
+              'epubUrl': book.epubUrl,
+              'downloads': book.downloads,
+              'languages': book.languages,
+            }))
+        .toList();
+    await prefs.setStringList('favoriteBooksData', jsonBooks);
   }
 
   static Future<void> loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
+    // Load ID saja
     final favoriteList = prefs.getStringList('favoriteBooks') ?? [];
     favoriteBooks = favoriteList.toSet();
+
+    // Load full data favorit dari JSON
+    final jsonBooks = prefs.getStringList('favoriteBooksData') ?? [];
+    favoriteBooksData = [];
+    for (var jsonStr in jsonBooks) {
+      try {
+        final data = jsonDecode(jsonStr) as Map<String, dynamic>;
+        favoriteBooksData.add(DigitalBook(
+          data['id'] as int,
+          data['title'] as String,
+          data['author'] as String,
+          data['year'] as int,
+          data['category'] as String,
+          data['description'] as String,
+          data['imageUrl'] as String,
+          data['epubUrl'] as String,
+          downloads: data['downloads'] as int? ?? 0,
+          languages: List<String>.from(data['languages'] as List? ?? []),
+        ));
+      } catch (e) {
+        print('Error loading favorite book: $e');
+      }
+    }
   }
 
-  // Rating dihapus dari API Gutendex, kita simpan lokal saja jika perlu
+  // Rating menggunakan bookId sebagai key, bukan title
   static Map<String, double> userRatings = {};
 
-  static Future<void> saveRating(String bookTitle, double rating) async {
+  static Future<void> saveRating(String bookId, double rating) async {
     final prefs = await SharedPreferences.getInstance();
-    userRatings[bookTitle] = rating;
+    userRatings[bookId] = rating;
     final ratings =
         userRatings.map((key, value) => MapEntry(key, value.toString()));
     await prefs.setString('userRatings', jsonEncode(ratings));
@@ -126,14 +168,23 @@ class AppData {
     }
   }
 
-  static double getUserRating(String bookTitle) {
-    return userRatings[bookTitle] ?? 0.0;
+  static double getUserRating(String bookId) {
+    return userRatings[bookId] ?? 0.0;
   }
 
   // Method untuk ensure data selalu ter-load dari SharedPreferences
   static Future<void> initializeAppData() async {
     await loadFavorites();
     await loadRatings();
+  }
+
+  // Clear all saved data (for debugging/reset)
+  static Future<void> clearAllData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('favoriteBooks');
+    await prefs.remove('userRatings');
+    favoriteBooks.clear();
+    userRatings.clear();
   }
 
   static List<String> get categories {

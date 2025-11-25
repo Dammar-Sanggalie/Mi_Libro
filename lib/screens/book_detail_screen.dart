@@ -44,10 +44,9 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     super.initState();
 
     _book = widget.initialBook;
-    if (_book != null) {
-      isFavorite = AppData.favoriteBooks.contains(_book!.title);
-      _userRating = AppData.getUserRating(_book!.title);
-    }
+
+    // Ensure favorites dan ratings di-load dari SharedPreferences sebelum set UI
+    _initializeData();
 
     _animationController = AnimationController(
       duration: Duration(milliseconds: 600),
@@ -70,6 +69,20 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     }
   }
 
+  Future<void> _initializeData() async {
+    // Load favorites dan ratings dari SharedPreferences
+    await AppData.loadFavorites();
+    await AppData.loadRatings();
+
+    // Set UI state dengan data yang sudah ter-load
+    if (_book != null && mounted) {
+      setState(() {
+        isFavorite = AppData.favoriteBooks.contains(_book!.id.toString());
+        _userRating = AppData.getUserRating(_book!.id.toString());
+      });
+    }
+  }
+
   Future<void> _fetchBookDetails() async {
     final repo = context.read<BookRepository>();
     try {
@@ -78,9 +91,16 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
       final fetchedBook = await repo.getBookDetails(id);
 
       if (mounted) {
+        // Load favorites dan ratings dari SharedPreferences
+        await AppData.loadFavorites();
+        await AppData.loadRatings();
+
         setState(() {
           _book = fetchedBook;
           _isLoading = false;
+          // Set favorite dan rating dengan data yang sudah ter-load
+          isFavorite = AppData.favoriteBooks.contains(_book!.id.toString());
+          _userRating = AppData.getUserRating(_book!.id.toString());
         });
       }
     } catch (e) {
@@ -105,10 +125,18 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     if (_book == null) return;
 
     setState(() {
+      final bookId = _book!.id.toString();
       if (isFavorite) {
-        AppData.favoriteBooks.remove(_book!.title);
+        AppData.favoriteBooks.remove(bookId);
+        AppData.favoriteBooksData
+            .removeWhere((book) => book.id.toString() == bookId);
       } else {
-        AppData.favoriteBooks.add(_book!.title);
+        AppData.favoriteBooks.add(bookId);
+        // Add full book data juga
+        if (!AppData.favoriteBooksData
+            .any((book) => book.id.toString() == bookId)) {
+          AppData.favoriteBooksData.add(_book!);
+        }
       }
       isFavorite = !isFavorite;
     });
@@ -300,7 +328,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                   value: _userRating,
                                   onChanged: (v) {
                                     setState(() => _userRating = v);
-                                    AppData.saveRating(book.title, v);
+                                    AppData.saveRating(book.id.toString(), v);
                                   },
                                   size: GFSize.SMALL,
                                   color: Colors.amber,
