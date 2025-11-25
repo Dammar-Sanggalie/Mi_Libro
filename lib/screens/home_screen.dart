@@ -2,13 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:perpustakaan_mini/screens/categories_screen.dart';
 // <-- PERUBAHAN: Hapus impor provider yang tidak perlu
 // import 'package:perpustakaan_mini/cubit/book_library_cubit.dart';
 // import 'package:perpustakaan_mini/cubit/book_search_cubit.dart';
 // import 'package:perpustakaan_mini/repositories/api_book_repository.dart';
 // import 'package:perpustakaan_mini/repositories/book_repository.dart';
 import 'book_library_screen.dart';
-import 'package:perpustakaan_mini/screens/compact_book_card.dart';
+import '../widgets/compact_book_card.dart';
 import 'package:perpustakaan_mini/screens/favorites_screen.dart';
 import 'package:perpustakaan_mini/screens/profile_screen.dart';
 
