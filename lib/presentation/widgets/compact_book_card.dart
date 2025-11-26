@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../data/app_data.dart';
-import '../models/book_model.dart';
-import '../screens/book_detail_screen.dart';
+import '../../data/app_data.dart';
+import '../../domain/entities/book.dart';
+import '../pages/book_detail_screen.dart'; // Corrected import path
 
 class CompactBookCard extends StatelessWidget {
   final DigitalBook book;
   final int colorIndex;
 
   const CompactBookCard({
-    Key? key,
+    super.key,
     required this.book,
     required this.colorIndex,
-  }) : super(key: key);
+  });
 
   // FUNGSI PROXY: Mengatasi CORS dan blocking
   String _getProxyUrl(String url) {

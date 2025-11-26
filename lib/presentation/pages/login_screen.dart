@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../data/app_data.dart';
-import '../models/user_model.dart';
+import '../../data/app_data.dart';
+import '../../domain/entities/user.dart';
 import 'home_screen.dart';
 
 // Fixed Login Screen - Overflow Issues Resolved
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }

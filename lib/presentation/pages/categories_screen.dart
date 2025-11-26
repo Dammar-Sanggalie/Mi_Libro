@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../data/app_data.dart';
-import '../models/book_model.dart';
+import '../../data/app_data.dart';
+import '../../domain/entities/book.dart';
 import 'category_books_screen.dart';
 
 // Enhanced Categories Screen

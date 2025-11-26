@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
-import 'package:perpustakaan_mini/cubit/book_library_cubit.dart';
+import 'package:perpustakaan_mini/presentation/cubit/book_library_cubit.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../data/app_data.dart';
+import '../../data/app_data.dart';
 import '../widgets/compact_book_card.dart';
 import '../widgets/search_delegate.dart';
 import '../widgets/sort_filter_controls.dart';

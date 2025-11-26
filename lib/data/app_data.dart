@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import '../models/book_model.dart';
-import '../models/user_model.dart';
+import '../domain/entities/book.dart';
+import '../domain/entities/user.dart';
+import '../domain/entities/book_collection.dart';
 
 // Enhanced Global Data Management
 class AppData {
@@ -43,7 +44,10 @@ class AppData {
     final prefs = await SharedPreferences.getInstance();
     // Simpan ID saja
     await prefs.setStringList('favoriteBooks', favoriteBooks.toList());
+    
     // Simpan full data favorit sebagai JSON
+    // NOTE: In Clean Architecture, Entities shouldn't handle JSON. 
+    // This is technical debt in AppData. 
     final jsonBooks = favoriteBooksData
         .map((book) => jsonEncode({
               'id': book.id,
@@ -56,6 +60,7 @@ class AppData {
               'epubUrl': book.epubUrl,
               'downloads': book.downloads,
               'languages': book.languages,
+              'rating': book.rating, // Added rating
             }))
         .toList();
     await prefs.setStringList('favoriteBooksData', jsonBooks);
@@ -74,16 +79,17 @@ class AppData {
       try {
         final data = jsonDecode(jsonStr) as Map<String, dynamic>;
         favoriteBooksData.add(DigitalBook(
-          data['id'] as int,
-          data['title'] as String,
-          data['author'] as String,
-          data['year'] as int,
-          data['category'] as String,
-          data['description'] as String,
-          data['imageUrl'] as String,
-          data['epubUrl'] as String,
+          id: data['id'] as int,
+          title: data['title'] as String,
+          author: data['author'] as String,
+          year: data['year'] as int,
+          category: data['category'] as String,
+          description: data['description'] as String,
+          imageUrl: data['imageUrl'] as String,
+          epubUrl: data['epubUrl'] as String,
           downloads: data['downloads'] as int? ?? 0,
           languages: List<String>.from(data['languages'] as List? ?? []),
+          rating: data['rating'] != null ? (data['rating'] as num).toDouble() : 0.0,
         ));
       } catch (e) {
         print('Error loading favorite book: $e');

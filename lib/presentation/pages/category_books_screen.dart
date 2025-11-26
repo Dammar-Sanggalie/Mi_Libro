@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import '../data/app_data.dart';
-import '../models/book_model.dart';
+import '../../data/app_data.dart';
+import '../../domain/entities/book.dart';
 import '../widgets/compact_book_card.dart';
 
 class CategoryBooksScreen extends StatelessWidget {
   final String category;
 
-  const CategoryBooksScreen({Key? key, required this.category})
-    : super(key: key);
+  const CategoryBooksScreen({super.key, required this.category});
 
   @override
   Widget build(BuildContext context) {

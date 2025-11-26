@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:perpustakaan_mini/cubit/book_search_cubit.dart';
-import '../data/app_data.dart';
+import 'package:perpustakaan_mini/presentation/cubit/book_search_cubit.dart';
+import '../../data/app_data.dart';
 import 'compact_book_card.dart';
 
 // Enhanced Search Delegate (Sekarang menggunakan Cubit)

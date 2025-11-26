@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // Untuk kIsWeb
 import 'package:epub_view/epub_view.dart';
 import 'package:http/http.dart' as http;
-import 'dart:typed_data'; // Untuk Uint8List
+// Removed: import 'dart:typed_data'; // Untuk Uint8List
 
 class EpubReaderScreen extends StatefulWidget {
   final String url;
   final String title;
 
   const EpubReaderScreen({
-    Key? key, 
+    super.key, // Add super.key
     required this.url,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   _EpubReaderScreenState createState() => _EpubReaderScreenState();
@@ -36,25 +36,16 @@ class _EpubReaderScreenState extends State<EpubReaderScreen> {
       Uint8List fileBytes;
 
       if (kIsWeb) {
-        // --- LOGIKA WEB ---
-        // Proxy 'corsproxy.io' diblokir (403), kita ganti ke 'api.codetabs.com' atau 'allorigins'
-        // 'codetabs' biasanya lebih andal untuk file binary (epub/pdf)
-        
-        // Opsi 1: CodeTabs
         final proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=${widget.url}';
         
-        // Opsi 2 (Cadangan): AllOrigins (Buka komen di bawah jika CodeTabs gagal)
-        // final proxyUrl = 'https://api.allorigins.win/raw?url=${Uri.encodeComponent(widget.url)}';
-        
-        print('Web Download via Proxy: $proxyUrl');
+        debugPrint('Web Download via Proxy: $proxyUrl');
         
         final response = await http.get(Uri.parse(proxyUrl));
         
         if (response.statusCode == 200) {
           fileBytes = response.bodyBytes;
         } else {
-          // Jika gagal, coba fallback sederhana tanpa proxy (kadang browser cache membantu)
-          print('Proxy failed (${response.statusCode}), trying direct...');
+          debugPrint('Proxy failed (${response.statusCode}), trying direct...');
           final directResponse = await http.get(Uri.parse(widget.url));
            if (directResponse.statusCode == 200) {
              fileBytes = directResponse.bodyBytes;
@@ -63,9 +54,7 @@ class _EpubReaderScreenState extends State<EpubReaderScreen> {
            }
         }
       } else {
-        // --- LOGIKA MOBILE (Android/iOS) ---
-        // Mobile tidak butuh proxy
-        print('Mobile Download Direct: ${widget.url}');
+        debugPrint('Mobile Download Direct: ${widget.url}');
         final response = await http.get(Uri.parse(widget.url));
         
         if (response.statusCode == 200) {
@@ -75,12 +64,10 @@ class _EpubReaderScreenState extends State<EpubReaderScreen> {
         }
       }
 
-      // Validasi data tidak kosong
       if (fileBytes.isEmpty) {
         throw Exception('File kosong (0 bytes)');
       }
 
-      // --- BUKA DATA ---
       _epubController = EpubController(
         document: EpubDocument.openData(fileBytes),
       );
@@ -97,7 +84,7 @@ class _EpubReaderScreenState extends State<EpubReaderScreen> {
           _error = "Gagal memuat buku.\nServer mungkin memblokir akses Web.\n\nError: ${e.toString().replaceAll('Exception:', '')}";
         });
       }
-      print("Error loading epub: $e");
+      debugPrint("Error loading epub: $e");
     }
   }
 
