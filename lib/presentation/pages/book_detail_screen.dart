@@ -3,24 +3,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:getwidget/getwidget.dart';
-import 'package:perpustakaan_mini/repositories/book_repository.dart';
+import 'package:perpustakaan_mini/domain/repositories/book_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../data/app_data.dart';
-import '../models/book_model.dart';
-// PERBAIKAN 1: Sesuaikan nama import dengan nama file asli (epub_player_screen.dart)
+import '../../data/app_data.dart'; // Keep for primaryColors
+import '../../domain/entities/book.dart';
+import '../cubit/user_library_cubit.dart'; // Import Cubit
+import '../cubit/user_library_state.dart'; // NEW: Import UserLibraryState
 import 'epub_player_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart'; // <-- Tambah Import
+import 'package:cached_network_image/cached_network_image.dart';
 
 class EnhancedBookDetailScreen extends StatefulWidget {
   final String bookId;
-  final DigitalBook?
-      initialBook; // Diubah tipe datanya agar sesuai dengan model
+  final DigitalBook? initialBook;
 
   const EnhancedBookDetailScreen({
-    Key? key,
-    required this.bookId, // Menggunakan String agar konsisten dengan API
+    super.key,
+    required this.bookId,
     this.initialBook,
-  }) : super(key: key);
+  });
 
   @override
   _EnhancedBookDetailScreenState createState() =>
@@ -36,7 +36,8 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   DigitalBook? _book;
   bool _isLoading = true;
   String? _error;
-  bool isFavorite = false;
+  
+  // Local state for rating only, favorites is managed by Cubit
   double _userRating = 0.0;
 
   @override
@@ -45,63 +46,49 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
 
     _book = widget.initialBook;
 
-    // Ensure favorites dan ratings di-load dari SharedPreferences sebelum set UI
-    _initializeData();
-
     _animationController = AnimationController(
-      duration: Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _slideAnimation =
-        Tween<Offset>(begin: Offset(0, 0.2), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
 
     _animationController.forward();
-    // Jika data awal belum lengkap, fetch detailnya
+    
+    // Fetch details if needed
     if (_book == null) {
       _fetchBookDetails();
     } else {
       setState(() => _isLoading = false);
+      _loadRating();
     }
   }
 
-  Future<void> _initializeData() async {
-    // Load favorites dan ratings dari SharedPreferences
-    await AppData.loadFavorites();
-    await AppData.loadRatings();
-
-    // Set UI state dengan data yang sudah ter-load
-    if (_book != null && mounted) {
-      setState(() {
-        isFavorite = AppData.favoriteBooks.contains(_book!.id.toString());
-        _userRating = AppData.getUserRating(_book!.id.toString());
-      });
-    }
+  Future<void> _loadRating() async {
+      // Ideally this should also be in a Cubit or Repository call
+      if (_book != null) {
+          final rating = await context.read<BookRepository>().getRating(_book!.id.toString());
+          if (mounted) setState(() => _userRating = rating);
+      }
   }
 
   Future<void> _fetchBookDetails() async {
     final repo = context.read<BookRepository>();
     try {
-      // Perhatikan: bookId di widget berupa String, tapi repo butuh int
       final int id = int.tryParse(widget.bookId) ?? 0;
       final fetchedBook = await repo.getBookDetails(id);
 
       if (mounted) {
-        // Load favorites dan ratings dari SharedPreferences
-        await AppData.loadFavorites();
-        await AppData.loadRatings();
-
         setState(() {
           _book = fetchedBook;
           _isLoading = false;
-          // Set favorite dan rating dengan data yang sudah ter-load
-          isFavorite = AppData.favoriteBooks.contains(_book!.id.toString());
-          _userRating = AppData.getUserRating(_book!.id.toString());
         });
+        _loadRating();
       }
     } catch (e) {
       if (mounted) {
@@ -121,41 +108,15 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     super.dispose();
   }
 
-  void _toggleFavorite() async {
+  void _toggleFavorite() {
     if (_book == null) return;
-
-    setState(() {
-      final bookId = _book!.id.toString();
-      if (isFavorite) {
-        AppData.favoriteBooks.remove(bookId);
-        AppData.favoriteBooksData
-            .removeWhere((book) => book.id.toString() == bookId);
-      } else {
-        AppData.favoriteBooks.add(bookId);
-        // Add full book data juga
-        if (!AppData.favoriteBooksData
-            .any((book) => book.id.toString() == bookId)) {
-          AppData.favoriteBooksData.add(_book!);
-        }
-      }
-      isFavorite = !isFavorite;
-    });
-
-    // Ensure save completes
-    await AppData.saveFavorites();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            Text(isFavorite ? 'Added to favorites' : 'Removed from favorites'),
-        backgroundColor: isFavorite ? Color(0xFF10B981) : Color(0xFFEF4444),
-        duration: Duration(milliseconds: 1500),
-      ),
-    );
+    context.read<UserLibraryCubit>().toggleFavoriteBook(_book!);
+    
+    // Snackbars are now handled locally or we can listen to state changes
+    // But simpler to just show generic feedback or let the UI update visually
   }
 
   Future<void> _openReadLink() async {
-    // PERBAIKAN 2: Gunakan properti yang benar dari book_model.dart (epubUrl)
     if (_book?.epubUrl == null || _book!.epubUrl.isEmpty) {
       _showError('No readable link available');
       return;
@@ -163,12 +124,10 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
 
     final url = _book!.epubUrl;
 
-    // PERBAIKAN 3: Gunakan properti yang benar (isReadable menggantikan isEpub)
     if (_book!.isReadable) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          // PERBAIKAN 4: Panggil Class yang Benar (EpubReaderScreen)
           builder: (context) => EpubReaderScreen(
             url: url,
             title: _book!.title,
@@ -176,7 +135,6 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
         ),
       );
     } else {
-      // Fallback jika bukan epub (jika ada logika lain)
       try {
         final Uri uri = Uri.parse(url);
         if (await canLaunchUrl(uri)) {
@@ -192,12 +150,12 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Color(0xFFEF4444)),
+      SnackBar(content: Text(message), backgroundColor: const Color(0xFFEF4444)),
     );
   }
 
   Widget _buildLoadingScreen() {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Color(0xFF1A1A2E),
       body: Center(child: CircularProgressIndicator(color: Color(0xFF6366F1))),
     );
@@ -206,10 +164,10 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   Widget _buildErrorScreen() {
     return Scaffold(
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
-      backgroundColor: Color(0xFF1A1A2E),
+      backgroundColor: const Color(0xFF1A1A2E),
       body: Center(
           child:
-              Text(_error ?? 'Error', style: TextStyle(color: Colors.white))),
+              Text(_error ?? 'Error', style: const TextStyle(color: Colors.white))),
     );
   }
 
@@ -221,9 +179,19 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     final DigitalBook book = _book!;
     int colorIndex = book.title.hashCode.abs() % AppData.primaryColors.length;
 
+    // Check favorite status from Cubit
+    final isFavorite = context.select<UserLibraryCubit, bool>((cubit) {
+      if (cubit.state is UserLibraryLoaded) {
+        return (cubit.state as UserLibraryLoaded)
+            .favorites
+            .any((b) => b.id == book.id);
+      }
+      return false;
+    });
+
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -241,19 +209,19 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                   pinned: true,
                   backgroundColor: Colors.transparent,
                   leading: Container(
-                    margin: EdgeInsets.all(8),
+                    margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.3),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_rounded, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
                   actions: [
                     Container(
-                      margin: EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.3),
                         shape: BoxShape.circle,
@@ -292,7 +260,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                     height: 200,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
+                                      boxShadow: const [
                                         BoxShadow(
                                             color: Colors.black38,
                                             blurRadius: 20,
@@ -302,33 +270,31 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(16),
                                       child: CachedNetworkImage(
-                                        // Gunakan CachedNetworkImage
-                                        // Bungkus dengan proxy wsrv.nl
                                         imageUrl:
                                             'https://wsrv.nl/?url=${Uri.encodeComponent(book.imageUrl)}',
                                         fit: BoxFit.cover,
                                         placeholder: (ctx, url) => Container(
                                           color: Colors.white10,
-                                          child: Center(
+                                          child: const Center(
                                               child: CircularProgressIndicator(
                                                   color: Colors.white)),
                                         ),
                                         errorWidget: (ctx, url, error) =>
                                             Container(
                                           color: Colors.white24,
-                                          child: Icon(Icons.book,
+                                          child: const Icon(Icons.book,
                                               color: Colors.white, size: 50),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                                SizedBox(height: 20),
+                                const SizedBox(height: 20),
                                 GFRating(
                                   value: _userRating,
                                   onChanged: (v) {
                                     setState(() => _userRating = v);
-                                    AppData.saveRating(book.id.toString(), v);
+                                    context.read<BookRepository>().saveRating(book.id.toString(), v);
                                   },
                                   size: GFSize.SMALL,
                                   color: Colors.amber,
@@ -345,36 +311,36 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           book.title,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w300,
                               color: Colors.white),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           'by ${book.author}',
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 16,
                               color: Colors.white70,
                               fontWeight: FontWeight.w500),
                         ),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         GridView.count(
                           shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           crossAxisCount: 2,
                           childAspectRatio: 2.5,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                           children: [
                             _buildInfoCard('Gutendex ID', book.id.toString(),
-                                Icons.tag), // Fix: book.id to string
+                                Icons.tag),
                             _buildInfoCard('Downloads',
                                 book.getFormattedDownloads(), Icons.download),
                             _buildInfoCard(
@@ -383,33 +349,32 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                     ? book.languages.join(', ').toUpperCase()
                                     : '-',
                                 Icons.language),
-                            // Fix: 'format' tidak ada di model, kita hardcode 'EPUB' jika readable
                             _buildInfoCard(
                                 'Format',
                                 book.isReadable ? 'EPUB' : 'Unknown',
                                 Icons.file_present),
                           ],
                         ),
-                        SizedBox(height: 24),
-                        Text('Subjects / Shelves',
+                        const SizedBox(height: 24),
+                        const Text('Subjects / Shelves',
                             style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white)),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Text(
                           book.description,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 15, color: Colors.white70, height: 1.6),
                           textAlign: TextAlign.justify,
                         ),
-                        SizedBox(height: 32),
+                        const SizedBox(height: 32),
                         Container(
                           height: 56,
                           width: double.infinity,
                           decoration: BoxDecoration(
                             gradient: book.isReadable
-                                ? LinearGradient(colors: [
+                                ? const LinearGradient(colors: [
                                     Color(0xFF6366F1),
                                     Color(0xFF8B5CF6)
                                   ])
@@ -422,9 +387,9 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                 ? [
                                     BoxShadow(
                                         color:
-                                            Color(0xFF6366F1).withOpacity(0.3),
+                                            const Color(0xFF6366F1).withOpacity(0.3),
                                         blurRadius: 20,
-                                        offset: Offset(0, 8))
+                                        offset: const Offset(0, 8))
                                   ]
                                 : [],
                           ),
@@ -443,10 +408,10 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                     color: Colors.white.withOpacity(
                                         book.isReadable ? 1.0 : 0.5),
                                   ),
-                                  SizedBox(width: 8),
+                                  const SizedBox(width: 8),
                                   Text(
                                     book.isReadable
-                                        ? 'Read Now' // Kita tahu ini EPUB karena filter di repo
+                                        ? 'Read Now'
                                         : 'Not Available',
                                     style: TextStyle(
                                       fontSize: 16,
@@ -460,7 +425,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                             ),
                           ),
                         ),
-                        SizedBox(height: 32),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
@@ -475,7 +440,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
 
   Widget _buildInfoCard(String title, String value, IconData icon) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
@@ -487,15 +452,15 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
         children: [
           Row(children: [
             Icon(icon, color: Colors.white70, size: 14),
-            SizedBox(width: 6),
+            const SizedBox(width: 6),
             Expanded(
                 child: Text(title,
-                    style: TextStyle(fontSize: 10, color: Colors.white54),
+                    style: const TextStyle(fontSize: 10, color: Colors.white54),
                     overflow: TextOverflow.ellipsis)),
           ]),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(value,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: Colors.white),

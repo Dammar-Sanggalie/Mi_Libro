@@ -1,13 +1,14 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:perpustakaan_mini/models/book_model.dart';
-import 'package:perpustakaan_mini/models/sort_option.dart';
-import 'package:perpustakaan_mini/repositories/book_repository.dart';
+import '../../domain/entities/book.dart';
+import '../../domain/entities/sort_option.dart';
+import '../../domain/usecases/get_initial_books.dart';
+import 'package:flutter/foundation.dart'; // Import for debugPrint
 
 part 'book_library_state.dart';
 
 class BookLibraryCubit extends Cubit<BookLibraryState> {
-  final BookRepository _bookRepository;
+  final GetInitialBooks _getInitialBooks;
 
   // State lokal untuk menampung data
   List<DigitalBook> _books = [];
@@ -20,7 +21,7 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
   SortOption _currentSort = SortOption.popularity;
   RatingFilter _currentRatingFilter = RatingFilter.all;
 
-  BookLibraryCubit(this._bookRepository) : super(BookLibraryInitial());
+  BookLibraryCubit(this._getInitialBooks) : super(BookLibraryInitial());
 
   // 1. Fungsi untuk mengambil buku awal (Reset dari 0)
   Future<void> fetchInitialBooks() async {
@@ -33,13 +34,13 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
     emit(BookLibraryLoading());
 
     try {
-      print('CUBIT (Library): Fetching initial books...');
+      debugPrint('CUBIT (Library): Fetching initial books...');
 
-      final pageData = await _bookRepository.getInitialBooks(
+      final pageData = await _getInitialBooks(
           offset: _offset, number: _limit);
       final newBooks = pageData.books;
 
-      print('CUBIT (Library): Success, ${newBooks.length} books found.');
+      debugPrint('CUBIT (Library): Success, ${newBooks.length} books found.');
 
       // Masukkan ke list lokal
       _allBooks.addAll(newBooks);
@@ -49,10 +50,10 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
       _applyFiltersAndSort();
 
       // Emit state Loaded dengan list yang sudah difilter
-      emit(BookLibraryLoaded(_books, hasReachedMax: newBooks.length < _limit));
+      emit(BookLibraryLoaded(_books, hasReachedMax: newBooks.length < _limit, totalBookCount: pageData.totalCount));
     } catch (e) {
-      print('--- CUBIT (Library) ERROR ---');
-      print(e.toString());
+      debugPrint('--- CUBIT (Library) ERROR ---');
+      debugPrint(e.toString());
       emit(BookLibraryError(e.toString()));
     }
 
@@ -74,19 +75,19 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
     final currentState = state;
 
     if (currentState is BookLibraryLoaded) {
-      print('CUBIT (Library): Fetching more books from offset $_offset');
+      debugPrint('CUBIT (Library): Fetching more books from offset $_offset');
 
       try {
-        final pageData = await _bookRepository.getInitialBooks(
+        final pageData = await _getInitialBooks(
             offset: _offset, number: _limit);
         final newBooks = pageData.books;
 
-        print(
+        debugPrint(
             'CUBIT (Library): Success (more), ${newBooks.length} books found.');
 
         if (newBooks.isEmpty) {
           // Jika tidak ada data baru, update hasReachedMax = true
-          emit(BookLibraryLoaded(currentState.books, hasReachedMax: true));
+          emit(BookLibraryLoaded(currentState.books, hasReachedMax: true, totalBookCount: currentState.totalBookCount));
         } else {
           // Add new books to _allBooks
           _allBooks.addAll(newBooks);
@@ -97,15 +98,15 @@ class BookLibraryCubit extends Cubit<BookLibraryState> {
 
           // Emit state dengan List yang BARU
           emit(BookLibraryLoaded(List.from(_books),
-              hasReachedMax: newBooks.length < _limit));
+              hasReachedMax: newBooks.length < _limit, totalBookCount: currentState.totalBookCount));
         }
       } catch (e) {
-        print('--- CUBIT (Library) LOAD MORE ERROR ---');
-        print(e.toString());
+        debugPrint('--- CUBIT (Library) LOAD MORE ERROR ---');
+        debugPrint(e.toString());
 
         // Jika gagal, kembalikan state sebelumnya agar UI tidak error
         emit(BookLibraryLoaded(List.from(_books),
-            hasReachedMax: currentState.hasReachedMax));
+            hasReachedMax: currentState.hasReachedMax, totalBookCount: currentState.totalBookCount));
       }
     }
 

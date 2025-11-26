@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../screens/book_library_screen.dart';
-import 'package:perpustakaan_mini/screens/favorites_screen.dart';
-import 'package:perpustakaan_mini/screens/profile_screen.dart';
+import '../pages/book_library_screen.dart';
+import '../pages/favorites_screen.dart';
+import '../pages/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }

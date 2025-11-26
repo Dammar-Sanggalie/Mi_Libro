@@ -3,33 +3,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:perpustakaan_mini/cubit/book_library_cubit.dart';
-import 'package:perpustakaan_mini/cubit/book_search_cubit.dart';
-import 'package:perpustakaan_mini/repositories/api_book_repository.dart';
-import 'package:perpustakaan_mini/repositories/book_repository.dart'; // <-- PERUBAHAN: Impor ini
-import 'package:perpustakaan_mini/screens/splash_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:perpustakaan_mini/presentation/cubit/book_library_cubit.dart';
+import 'package:perpustakaan_mini/presentation/cubit/book_search_cubit.dart';
+import 'package:perpustakaan_mini/presentation/cubit/user_library_cubit.dart';
+
+import 'package:perpustakaan_mini/data/datasources/book_remote_data_source.dart';
+import 'package:perpustakaan_mini/data/datasources/book_local_data_source.dart';
+import 'package:perpustakaan_mini/data/repositories/book_repository_impl.dart';
+
+import 'package:perpustakaan_mini/domain/repositories/book_repository.dart';
+import 'package:perpustakaan_mini/domain/usecases/get_initial_books.dart';
+import 'package:perpustakaan_mini/domain/usecases/search_books.dart';
+import 'package:perpustakaan_mini/domain/usecases/get_favorites.dart';
+import 'package:perpustakaan_mini/domain/usecases/toggle_favorite.dart';
+import 'package:perpustakaan_mini/domain/usecases/get_collections.dart';
+import 'package:perpustakaan_mini/domain/usecases/save_collections.dart';
+
+import 'package:perpustakaan_mini/presentation/pages/splash_screen.dart';
 import 'package:perpustakaan_mini/data/app_data.dart';
 
 void main() async {
-  // ... (kode async Anda tetap sama)
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
-  await AppData
-      .initializeAppData(); // Load favorit dan rating dari SharedPreferences
+  
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
 
-  final ApiBookRepository apiBookRepository = ApiBookRepository();
+  // 1. Create Data Sources
+  final bookRemoteDataSource = BookRemoteDataSourceImpl();
+  final bookLocalDataSource = BookLocalDataSourceImpl(sharedPreferences: prefs);
+
+  // 2. Create Repository
+  final bookRepository = BookRepositoryImpl(
+    remoteDataSource: bookRemoteDataSource,
+    localDataSource: bookLocalDataSource,
+  );
+
+  // 3. Create UseCases
+  final getInitialBooks = GetInitialBooks(bookRepository);
+  final searchBooks = SearchBooks(bookRepository);
+  final getFavorites = GetFavorites(bookRepository);
+  final toggleFavorite = ToggleFavorite(bookRepository);
+  final getCollections = GetCollections(bookRepository);
+  final saveCollections = SaveCollections(bookRepository);
 
   runApp(
-    // <-- PERUBAHAN: Bungkus semuanya dengan RepositoryProvider
-    RepositoryProvider<BookRepository>(
-      create: (context) => apiBookRepository,
+    RepositoryProvider<BookRepository>.value(
+      value: bookRepository,
       child: MultiBlocProvider(
         providers: [
           BlocProvider<BookSearchCubit>(
-            create: (context) => BookSearchCubit(apiBookRepository),
+            create: (context) => BookSearchCubit(searchBooks),
           ),
           BlocProvider<BookLibraryCubit>(
-            create: (context) => BookLibraryCubit(apiBookRepository),
+            create: (context) => BookLibraryCubit(getInitialBooks),
+          ),
+          BlocProvider<UserLibraryCubit>(
+            create: (context) => UserLibraryCubit(
+              getFavorites: getFavorites,
+              toggleFavorite: toggleFavorite,
+              getCollections: getCollections,
+              saveCollections: saveCollections,
+            )..loadLibrary(),
           ),
         ],
         child: const MyApp(),
@@ -39,7 +76,6 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  // ... (Sisa file MyApp tetap sama)
   const MyApp({super.key});
 
   @override

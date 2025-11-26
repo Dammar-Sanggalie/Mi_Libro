@@ -2,9 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/book_library_cubit.dart';
-import '../models/sort_option.dart';
+import '../../domain/entities/sort_option.dart';
 
 class SortFilterControls extends StatelessWidget {
+  const SortFilterControls({super.key});
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BookLibraryCubit, BookLibraryState>(

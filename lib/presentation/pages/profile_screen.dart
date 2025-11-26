@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // PERUBAHAN: Tambah import bloc
 import 'package:intl/intl.dart';
-import '../data/app_data.dart';
+import '../../data/app_data.dart';
 import '../cubit/book_library_cubit.dart'; // PERUBAHAN: Tambah import cubit
 import 'login_screen.dart';
 
 // Enhanced Profile Screen
 class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +90,7 @@ class ProfileScreen extends StatelessWidget {
                           AppData.currentUser?.email ?? 'user@email.com',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white.withOpacity(0.7),
+  color: Colors.white.withOpacity(0.7),
                           ),
                         ),
                       ),
@@ -522,8 +524,7 @@ class ProfileScreen extends StatelessWidget {
                   SizedBox(height: 8),
                   Text(
                     '• Encapsulation - Private data members with getters/setters',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
+                    style: TextStyle(color: Colors.white.withOpacity(0.7),
                       fontSize: 12,
                     ),
                   ),
