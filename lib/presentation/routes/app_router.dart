@@ -13,6 +13,7 @@ import '../pages/about_screen.dart'; // Import AboutScreen
 import '../pages/book_detail_screen.dart';
 import '../pages/epub_player_screen.dart';
 import '../pages/category_books_screen.dart';
+import '../pages/about_us_screen.dart';
 
 // Key untuk Navigator Root (agar halaman detail menutupi BottomBar)
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -123,6 +124,13 @@ class AppRouter {
           final category = state.pathParameters['category']!;
           return CategoryBooksScreen(category: category);
         },
+      ),
+
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/profile/about-us',
+        name: 'about-us',
+        builder: (context, state) => AboutUsScreen(), 
       ),
     ],
   );

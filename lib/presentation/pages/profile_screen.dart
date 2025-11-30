@@ -154,34 +154,13 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      _buildMenuItem(
-                        Icons.settings_rounded,
-                        'Settings',
-                        () {},
-                        [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
-                      ),
-                      _buildDivider(),
-                      _buildMenuItem(
-                        Icons.notifications_rounded,
-                        'Notifications',
-                        () {},
-                        [const Color(0xFF06B6D4), const Color(0xFF0891B2)],
-                      ),
-                      _buildDivider(),
-                      _buildMenuItem(
-                        Icons.help_outline_rounded,
-                        'Help & Support',
-                        () {},
-                        [const Color(0xFFF59E0B), const Color(0xFFD97706)],
-                      ),
                       _buildDivider(),
                       // ITEM ABOUT DIPERBARUI
                       _buildMenuItem(
                         Icons.info_outline_rounded,
-                        'About',
+                        'About Us',
                         () {
-                          // Menggunakan GoRouter untuk pindah ke /profile/about
-                          context.go('/profile/about');
+                          context.go('/profile/about-us');
                         },
                         [const Color(0xFF10B981), const Color(0xFF059669)],
                       ),
