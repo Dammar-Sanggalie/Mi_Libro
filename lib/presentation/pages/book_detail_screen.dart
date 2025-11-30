@@ -1,16 +1,17 @@
-// lib/screens/book_detail_screen.dart
+// lib/presentation/pages/book_detail_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:getwidget/getwidget.dart';
-import 'package:perpustakaan_mini/domain/repositories/book_repository.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:url_launcher/url_launcher.dart';
-import '../../data/app_data.dart'; // Keep for primaryColors
-import '../../domain/entities/book.dart';
-import '../cubit/user_library_cubit.dart'; // Import Cubit
-import '../cubit/user_library_state.dart'; // NEW: Import UserLibraryState
-import 'epub_player_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
+import 'package:perpustakaan_mini/domain/repositories/book_repository.dart';
+import '../../data/app_data.dart';
+import '../../domain/entities/book.dart';
+import '../cubit/user_library_cubit.dart';
+import '../cubit/user_library_state.dart'; // TAMBAHAN: Import State agar UserLibraryLoaded dikenali
 
 class EnhancedBookDetailScreen extends StatefulWidget {
   final String bookId;
@@ -36,8 +37,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   DigitalBook? _book;
   bool _isLoading = true;
   String? _error;
-  
-  // Local state for rating only, favorites is managed by Cubit
+
   double _userRating = 0.0;
 
   @override
@@ -59,7 +59,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     );
 
     _animationController.forward();
-    
+
     // Fetch details if needed
     if (_book == null) {
       _fetchBookDetails();
@@ -70,11 +70,12 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   }
 
   Future<void> _loadRating() async {
-      // Ideally this should also be in a Cubit or Repository call
-      if (_book != null) {
-          final rating = await context.read<BookRepository>().getRating(_book!.id.toString());
-          if (mounted) setState(() => _userRating = rating);
-      }
+    // Ideally this should also be in a Cubit or Repository call
+    if (_book != null) {
+      final rating =
+          await context.read<BookRepository>().getRating(_book!.id.toString());
+      if (mounted) setState(() => _userRating = rating);
+    }
   }
 
   Future<void> _fetchBookDetails() async {
@@ -111,7 +112,7 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   void _toggleFavorite() {
     if (_book == null) return;
     context.read<UserLibraryCubit>().toggleFavoriteBook(_book!);
-    
+
     // Snackbars are now handled locally or we can listen to state changes
     // But simpler to just show generic feedback or let the UI update visually
   }
@@ -125,15 +126,11 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     final url = _book!.epubUrl;
 
     if (_book!.isReadable) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EpubReaderScreen(
-            url: url,
-            title: _book!.title,
-          ),
-        ),
-      );
+      // Menggunakan GoRouter untuk navigasi ke Epub Reader
+      context.push('/read', extra: {
+        'url': url,
+        'title': _book!.title,
+      });
     } else {
       try {
         final Uri uri = Uri.parse(url);
@@ -150,7 +147,8 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: const Color(0xFFEF4444)),
+      SnackBar(
+          content: Text(message), backgroundColor: const Color(0xFFEF4444)),
     );
   }
 
@@ -166,8 +164,8 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       backgroundColor: const Color(0xFF1A1A2E),
       body: Center(
-          child:
-              Text(_error ?? 'Error', style: const TextStyle(color: Colors.white))),
+          child: Text(_error ?? 'Error',
+              style: const TextStyle(color: Colors.white))),
     );
   }
 
@@ -215,8 +213,10 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_rounded,
+                          color: Colors.white),
+                      // Menggunakan context.pop() pengganti Navigator.pop
+                      onPressed: () => context.pop(),
                     ),
                   ),
                   actions: [
@@ -294,7 +294,9 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                                   value: _userRating,
                                   onChanged: (v) {
                                     setState(() => _userRating = v);
-                                    context.read<BookRepository>().saveRating(book.id.toString(), v);
+                                    context
+                                        .read<BookRepository>()
+                                        .saveRating(book.id.toString(), v);
                                   },
                                   size: GFSize.SMALL,
                                   color: Colors.amber,
@@ -339,8 +341,8 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                           children: [
-                            _buildInfoCard('Gutendex ID', book.id.toString(),
-                                Icons.tag),
+                            _buildInfoCard(
+                                'Gutendex ID', book.id.toString(), Icons.tag),
                             _buildInfoCard('Downloads',
                                 book.getFormattedDownloads(), Icons.download),
                             _buildInfoCard(
@@ -386,8 +388,8 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
                             boxShadow: book.isReadable
                                 ? [
                                     BoxShadow(
-                                        color:
-                                            const Color(0xFF6366F1).withOpacity(0.3),
+                                        color: const Color(0xFF6366F1)
+                                            .withOpacity(0.3),
                                         blurRadius: 20,
                                         offset: const Offset(0, 8))
                                   ]

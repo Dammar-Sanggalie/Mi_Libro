@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // PERUBAHAN: Tambah import bloc
-import 'package:intl/intl.dart';
-import '../../data/app_data.dart';
-import '../cubit/book_library_cubit.dart'; // PERUBAHAN: Tambah import cubit
-import 'login_screen.dart';
+// lib/presentation/pages/profile_screen.dart
 
-// Enhanced Profile Screen
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
+
+import '../../data/app_data.dart';
+import '../cubit/book_library_cubit.dart';
+// import 'login_screen.dart'; // Tidak diperlukan lagi
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -25,7 +28,6 @@ class ProfileScreen extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(20, 20, 20, 120),
             child: Column(
               children: [
-                // Profile Header
                 Container(
                   padding: EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -90,7 +92,7 @@ class ProfileScreen extends StatelessWidget {
                           AppData.currentUser?.email ?? 'user@email.com',
                           style: TextStyle(
                             fontSize: 12,
-  color: Colors.white.withOpacity(0.7),
+                            color: Colors.white.withOpacity(0.7),
                           ),
                         ),
                       ),
@@ -98,21 +100,17 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 24),
-                // Statistics
                 Row(
                   children: [
-                    // PERUBAHAN: Bungkus StatCard dengan BlocBuilder untuk mengambil Total Books dari API
                     Expanded(
                       child: BlocBuilder<BookLibraryCubit, BookLibraryState>(
                         builder: (context, state) {
-                          String totalBooks = '...'; // Default loading
+                          String totalBooks = '...';
 
                           if (state is BookLibraryLoaded) {
-                            // Format angka (contoh: 74,000)
                             totalBooks = NumberFormat.compact()
                                 .format(state.totalBookCount);
                           } else if (state is BookLibraryInitial) {
-                            // Jika belum load, coba load manual atau pakai dummy
                             totalBooks = '${AppData.books.length}';
                           }
 
@@ -146,7 +144,6 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 24),
-                // Menu Options
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.03),
@@ -193,7 +190,6 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 24),
-                // Reading Progress Section
                 Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -419,22 +415,9 @@ class ProfileScreen extends StatelessWidget {
                 AppData.currentUser = null;
                 AppData.favoriteBooks.clear();
                 AppData.saveFavorites();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        LoginScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      );
-                    },
-                    transitionDuration: Duration(milliseconds: 800),
-                  ),
-                  (route) => false,
-                );
+
+                // Menggunakan GoRouter untuk kembali ke Login
+                context.go('/login');
               },
               child: Text('Logout', style: TextStyle(color: Colors.white)),
             ),
@@ -524,7 +507,8 @@ class ProfileScreen extends StatelessWidget {
                   SizedBox(height: 8),
                   Text(
                     '• Encapsulation - Private data members with getters/setters',
-                    style: TextStyle(color: Colors.white.withOpacity(0.7),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
                       fontSize: 12,
                     ),
                   ),

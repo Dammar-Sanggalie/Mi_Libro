@@ -1,4 +1,7 @@
+// lib/presentation/pages/category_books_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import '../../data/app_data.dart';
 import '../../domain/entities/book.dart';
 import '../widgets/compact_book_card.dart';
@@ -35,7 +38,8 @@ class CategoryBooksScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        onPressed: () => Navigator.pop(context),
+                        // Menggunakan context.pop()
+                        onPressed: () => context.pop(),
                         icon: Icon(
                           Icons.arrow_back_rounded,
                           color: Colors.white,

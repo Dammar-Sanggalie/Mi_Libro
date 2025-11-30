@@ -1,9 +1,11 @@
+// lib/presentation/pages/categories_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import '../../data/app_data.dart';
 import '../../domain/entities/book.dart';
-import 'category_books_screen.dart';
+// import 'category_books_screen.dart'; // Tidak diperlukan lagi
 
-// Enhanced Categories Screen
 class CategoriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -76,25 +78,10 @@ class CategoriesScreen extends StatelessWidget {
                     int colorIndex = index % AppData.primaryColors.length;
 
                     return GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (context, animation, secondaryAnimation) =>
-                                  CategoryBooksScreen(category: category),
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                                return SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: Offset(1.0, 0.0),
-                                    end: Offset.zero,
-                                  ).animate(animation),
-                                  child: child,
-                                );
-                              },
-                          transitionDuration: Duration(milliseconds: 400),
-                        ),
-                      ),
+                      onTap: () {
+                        // Menggunakan GoRouter untuk navigasi ke kategori
+                        context.push('/category/$category');
+                      },
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(

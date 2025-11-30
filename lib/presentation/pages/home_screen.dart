@@ -1,39 +1,34 @@
 import 'package:flutter/material.dart';
-import '../pages/book_library_screen.dart';
-import '../pages/favorites_screen.dart';
-import '../pages/profile_screen.dart';
+import 'package:go_router/go_router.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  final StatefulNavigationShell navigationShell;
 
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    BookLibraryScreen(),
-    FavoritesScreen(),
-    ProfileScreen(),
-  ];
+  const HomeScreen({
+    super.key,
+    required this.navigationShell,
+  });
 
   void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    // Memberitahu GoRouter untuk pindah branch (Tab)
+    // initialLocation: index == navigationShell.currentIndex
+    // akan mereset stack jika tab yang sama ditekan (opsional)
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
-      extendBody: true,
+      // Body diisi oleh navigationShell (halaman dari Tab aktif)
+      body: navigationShell,
+      extendBody: true, // Agar background menyatu
       bottomNavigationBar: Container(
-        margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
           ),
           borderRadius: BorderRadius.circular(24),
@@ -42,23 +37,23 @@ class _HomeScreenState extends State<HomeScreen> {
             BoxShadow(
               color: Colors.black.withOpacity(0.3),
               blurRadius: 20,
-              offset: Offset(0, 10),
+              offset: const Offset(0, 10),
             ),
           ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: BottomNavigationBar(
-            currentIndex: _currentIndex,
+            currentIndex: navigationShell.currentIndex,
             onTap: _onItemTapped,
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.transparent,
-            selectedItemColor: Color(0xFF6366F1),
+            selectedItemColor: const Color(0xFF6366F1),
             unselectedItemColor: Colors.white.withOpacity(0.4),
             elevation: 0,
             selectedFontSize: 12,
             unselectedFontSize: 11,
-            items: [
+            items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_rounded),
                 label: 'Home',

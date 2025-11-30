@@ -1,9 +1,11 @@
+// lib/presentation/pages/login_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import '../../data/app_data.dart';
 import '../../domain/entities/user.dart';
-import 'home_screen.dart';
+// import 'home_screen.dart'; // Tidak diperlukan lagi karena pakai rute
 
-// Fixed Login Screen - Overflow Issues Resolved
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -106,30 +108,8 @@ class _LoginScreenState extends State<LoginScreen>
 
         if (user != null) {
           AppData.currentUser = user;
-          Navigator.pushReplacement(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  HomeScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(1.0, 0.0),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    )),
-                    child: child,
-                  ),
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 600),
-            ),
-          );
+          // Menggunakan GoRouter untuk pindah ke Home
+          context.go('/home');
         } else {
           _showMessage('Invalid credentials. Please try again.', isError: true);
         }
@@ -153,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen>
           _toggleAuthMode();
         }
       }
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -170,7 +150,8 @@ class _LoginScreenState extends State<LoginScreen>
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+        backgroundColor:
+            isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(16),
@@ -180,6 +161,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    // UI Code sama persis, tidak ada perubahan
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -217,7 +199,8 @@ class _LoginScreenState extends State<LoginScreen>
                                   borderRadius: BorderRadius.circular(32),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF6366F1).withOpacity(0.4),
+                                      color: const Color(0xFF6366F1)
+                                          .withOpacity(0.4),
                                       blurRadius: 40,
                                       spreadRadius: 10,
                                     ),
@@ -518,7 +501,8 @@ class _LoginScreenState extends State<LoginScreen>
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           floatingLabelBehavior: FloatingLabelBehavior.auto,
         ),
         validator: validator,
@@ -579,7 +563,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  // FIXED: Auth toggle with proper spacing and overflow prevention
   Widget _buildAuthToggle() {
     return GestureDetector(
       onTap: _toggleAuthMode,
