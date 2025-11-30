@@ -1,3 +1,5 @@
+// lib/presentation/routes/app_router.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/book.dart';
@@ -7,13 +9,13 @@ import '../pages/home_screen.dart';
 import '../pages/book_library_screen.dart';
 import '../pages/favorites_screen.dart';
 import '../pages/profile_screen.dart';
+import '../pages/about_screen.dart'; // Import AboutScreen
 import '../pages/book_detail_screen.dart';
 import '../pages/epub_player_screen.dart';
 import '../pages/category_books_screen.dart';
 
-// Key untuk Navigator agar transisi halaman detail menutupi BottomBar
+// Key untuk Navigator Root (agar halaman detail menutupi BottomBar)
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -35,15 +37,13 @@ class AppRouter {
         builder: (context, state) => const LoginScreen(),
       ),
 
-      // 3. SHELL ROUTE (Untuk Bottom Navigation Bar)
-      // Ini membuat URL berubah saat pindah tab (/home -> /favorites)
+      // 3. SHELL ROUTE (Bottom Navigation)
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          // HomeScreen sekarang bertugas sebagai "Wrapper"
           return HomeScreen(navigationShell: navigationShell);
         },
         branches: [
-          // Branch 0: Home / Library
+          // Branch 0: Home
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -70,15 +70,26 @@ class AppRouter {
                 path: '/profile',
                 name: 'profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  // --- SUB-ROUTE: ABOUT ---
+                  // URL akan menjadi: /profile/about
+                  GoRoute(
+                    path: 'about',
+                    name: 'about',
+                    parentNavigatorKey:
+                        _rootNavigatorKey, // Full screen (menutupi bottom bar)
+                    builder: (context, state) => const AboutScreen(),
+                  ),
+                ],
               ),
             ],
           ),
         ],
       ),
 
-      // 4. Detail Pages (Di luar Shell agar menutupi Bottom Bar)
+      // 4. Detail Pages (Global)
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey, // Penting agar full screen
+        parentNavigatorKey: _rootNavigatorKey,
         path: '/book/:id',
         name: 'book-detail',
         builder: (context, state) {
