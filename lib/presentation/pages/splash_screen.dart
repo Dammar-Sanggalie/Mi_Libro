@@ -2,7 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -69,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
@@ -85,9 +85,9 @@ class _SplashScreenState extends State<SplashScreen>
     _rotateController.repeat();
     _shimmerController.repeat(reverse: true);
 
-    Timer(const Duration(seconds: 3), () {
+    // UPDATED: Durasi diperpanjang jadi 5 detik
+    Timer(const Duration(seconds: 5), () {
       if (mounted) {
-        // Menggunakan GoRouter untuk navigasi ke Login
         context.go('/login');
       }
     });
@@ -104,7 +104,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    // UI Code sama persis, tidak ada perubahan
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -132,6 +131,7 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        // 1. LOGO SECTION (Tanpa Glow)
                         Transform.translate(
                           offset: Offset(0, -_slideAnimation.value),
                           child: ScaleTransition(
@@ -144,52 +144,43 @@ class _SplashScreenState extends State<SplashScreen>
                                   child: Hero(
                                     tag: 'app_logo',
                                     child: Container(
+                                      // UPDATED: BoxShadow dihapus
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(40),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(0xFF6366F1)
-                                                .withOpacity(0.5),
-                                            blurRadius: 60,
-                                            spreadRadius: 20,
-                                          ),
-                                          BoxShadow(
-                                            color: const Color(0xFF8B5CF6)
-                                                .withOpacity(0.3),
-                                            blurRadius: 80,
-                                            spreadRadius: 30,
-                                          ),
-                                        ],
                                       ),
-                                      child: Image.asset(
-                                        'assets/logo.png',
-                                        width: 180,
-                                        height: 180,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Container(
-                                            width: 160,
-                                            height: 160,
-                                            decoration: BoxDecoration(
-                                              gradient: const LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  Color(0xFF6366F1),
-                                                  Color(0xFF8B5CF6),
-                                                  Color(0xFFEC4899),
-                                                ],
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(40),
+                                        child: Image.asset(
+                                          'assets/logo.png',
+                                          width: 160,
+                                          height: 160,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Container(
+                                              width: 160,
+                                              height: 160,
+                                              decoration: BoxDecoration(
+                                                gradient: const LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Color(0xFF6366F1),
+                                                    Color(0xFF8B5CF6),
+                                                    Color(0xFFEC4899),
+                                                  ],
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(40),
                                               ),
-                                              borderRadius:
-                                                  BorderRadius.circular(40),
-                                            ),
-                                            child: const Icon(
-                                              Icons.auto_stories_rounded,
-                                              size: 80,
-                                              color: Colors.white,
-                                            ),
-                                          );
-                                        },
+                                              child: const Icon(
+                                                Icons.auto_stories_rounded,
+                                                size: 70,
+                                                color: Colors.white,
+                                              ),
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -198,7 +189,10 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ),
                         ),
-                        const SizedBox(height: 56),
+                        
+                        const SizedBox(height: 48),
+                        
+                        // 2. TEXT TITLE
                         Transform.translate(
                           offset: Offset(0, _slideAnimation.value),
                           child: AnimatedBuilder(
@@ -216,14 +210,14 @@ class _SplashScreenState extends State<SplashScreen>
                                     const Color(0xFF8B5CF6),
                                     Colors.white.withOpacity(0.3),
                                   ],
-                                  stops: [0.0, 0.3, 0.5, 0.7, 1.0],
+                                  stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
                                 ).createShader(bounds),
                                 child: const Text(
-                                  'Digital Libary',
+                                  'Digital Library',
                                   style: TextStyle(
-                                    fontSize: 38,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.5,
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.2,
                                     color: Colors.white,
                                     height: 1.2,
                                   ),
@@ -233,25 +227,28 @@ class _SplashScreenState extends State<SplashScreen>
                             },
                           ),
                         ),
+                        
                         const SizedBox(height: 16),
+                        
+                        // 3. BADGE / SUBTITLE
                         Transform.translate(
                           offset: Offset(0, _slideAnimation.value * 0.5),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 28,
-                              vertical: 10,
+                              horizontal: 24,
+                              vertical: 8,
                             ),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color(0xFF6366F1).withOpacity(0.2),
-                                  const Color(0xFF8B5CF6).withOpacity(0.2),
+                                  const Color(0xFF6366F1).withOpacity(0.15),
+                                  const Color(0xFF8B5CF6).withOpacity(0.15),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(25),
+                              borderRadius: BorderRadius.circular(30),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1.5,
+                                color: Colors.white.withOpacity(0.15),
+                                width: 1,
                               ),
                             ),
                             child: Row(
@@ -259,74 +256,65 @@ class _SplashScreenState extends State<SplashScreen>
                               children: [
                                 Icon(
                                   Icons.auto_awesome_rounded,
-                                  size: 16,
-                                  color: Colors.white.withOpacity(0.8),
+                                  size: 14,
+                                  color: Colors.white.withOpacity(0.9),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Digital Excellence',
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white.withOpacity(0.8),
-                                    letterSpacing: 1.2,
-                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                    color: Colors.white.withOpacity(0.9),
+                                    letterSpacing: 1.0,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(height: 100),
+                        
+                        const SizedBox(height: 80),
+                        
+                        // 4. LOADING INDICATOR
                         Transform.translate(
                           offset: Offset(0, _slideAnimation.value * 0.3),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SizedBox(
-                                width: 50,
-                                height: 50,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    const Color(0xFF6366F1).withOpacity(0.3),
-                                  ),
-                                  strokeWidth: 2,
-                                ),
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                const Color(0xFF8B5CF6),
                               ),
-                              SizedBox(
-                                width: 38,
-                                height: 38,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    const Color(0xFF8B5CF6).withOpacity(0.5),
-                                  ),
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ],
+                              strokeWidth: 2.5,
+                              backgroundColor: Colors.white.withOpacity(0.1),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 50),
+                        
+                        const SizedBox(height: 40),
+                        
+                        // 5. FOOTER INFO (UPDATED)
                         Transform.translate(
                           offset: Offset(0, -_slideAnimation.value * 0.2),
                           child: Column(
                             children: [
                               Text(
-                                'by Dammar Sanggalie',
+                                'Kelompok 2', // UPDATED TEXT
                                 style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white.withOpacity(0.4),
-                                  fontStyle: FontStyle.italic,
-                                  letterSpacing: 0.8,
-                                  fontWeight: FontWeight.w300,
+                                  fontSize: 14, // Sedikit diperbesar
+                                  color: Colors.white.withOpacity(0.7), // Sedikit lebih terang
+                                  letterSpacing: 1.0,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 4),
                               Text(
-                                'v1.0.0',
+                                'v2.0.0',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.white.withOpacity(0.25),
-                                  letterSpacing: 0.5,
+                                  color: Colors.white.withOpacity(0.4), // Sedikit lebih terang
+                                  letterSpacing: 1.0,
                                 ),
                               ),
                             ],
@@ -362,11 +350,11 @@ class _SplashScreenState extends State<SplashScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF6366F1).withOpacity(0.15),
-                        const Color(0xFF6366F1).withOpacity(0.05),
+                        const Color(0xFF6366F1).withOpacity(0.1),
+                        const Color(0xFF6366F1).withOpacity(0.02),
                         Colors.transparent,
                       ],
-                      stops: [0.0, 0.5, 1.0],
+                      stops: const [0.0, 0.5, 1.0],
                     ),
                   ),
                 ),
@@ -389,11 +377,11 @@ class _SplashScreenState extends State<SplashScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF8B5CF6).withOpacity(0.15),
-                        const Color(0xFF8B5CF6).withOpacity(0.05),
+                        const Color(0xFF8B5CF6).withOpacity(0.1),
+                        const Color(0xFF8B5CF6).withOpacity(0.02),
                         Colors.transparent,
                       ],
-                      stops: [0.0, 0.5, 1.0],
+                      stops: const [0.0, 0.5, 1.0],
                     ),
                   ),
                 ),
@@ -401,19 +389,17 @@ class _SplashScreenState extends State<SplashScreen>
             },
           ),
         ),
-        Center(
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFFEC4899).withOpacity(0.08),
-                  Colors.transparent,
-                ],
-              ),
-            ),
+        // Vignette effect
+        Container(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+               center: Alignment.center,
+               radius: 1.5,
+               colors: [
+                 Colors.transparent,
+                 Colors.black.withOpacity(0.5),
+               ]
+            )
           ),
         ),
       ],
