@@ -23,6 +23,7 @@ import 'package:perpustakaan_mini/domain/usecases/save_collections.dart';
 
 // IMPORT ROUTER BARU
 import 'package:perpustakaan_mini/presentation/routes/app_router.dart';
+import 'package:sizer/sizer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,23 +82,27 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // MENGGUNAKAN MATERIALAPP.ROUTER
-    return MaterialApp.router(
-      title: 'Digital Library',
-      theme: ThemeData(
-        primarySwatch: Colors.grey,
-        scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-        fontFamily: 'Inter',
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(color: Colors.white),
-          displayMedium: TextStyle(color: Colors.white),
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white70),
-        ),
-      ),
-      // HUBUNGKAN DENGAN GO_ROUTER CONFIG
-      routerConfig: AppRouter.router,
-      debugShowCheckedModeBanner: false,
+    return Sizer(
+      builder: (context, orientation, deviceType) {
+        return MaterialApp.router(
+          title: 'Digital Library',
+          theme: ThemeData(
+            primarySwatch: Colors.grey,
+            scaffoldBackgroundColor: const Color(0xFF0A0A0A),
+            fontFamily: 'Inter',
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+            textTheme: const TextTheme(
+              displayLarge: TextStyle(color: Colors.white),
+              displayMedium: TextStyle(color: Colors.white),
+              bodyLarge: TextStyle(color: Colors.white),
+              bodyMedium: TextStyle(color: Colors.white70),
+            ),
+          ),
+          // HUBUNGKAN DENGAN GO_ROUTER CONFIG
+          routerConfig: AppRouter.router,
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }
