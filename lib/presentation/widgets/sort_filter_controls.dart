@@ -108,6 +108,8 @@ class SortFilterControls extends StatelessWidget {
   void _showSortOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         padding: EdgeInsets.all(20),
@@ -154,6 +156,8 @@ class SortFilterControls extends StatelessWidget {
   void _showRatingFilters(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         padding: EdgeInsets.all(20),

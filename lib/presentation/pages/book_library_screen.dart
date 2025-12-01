@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
+import 'package:go_router/go_router.dart'; // WAJIB: Import GoRouter
 import 'package:perpustakaan_mini/presentation/cubit/book_library_cubit.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../data/app_data.dart';
@@ -39,14 +40,15 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
 
     _scrollController.addListener(_onScroll);
 
+    // Fetch data saat layar dibuka
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BookLibraryCubit>().fetchInitialBooks();
     });
 
-    // Auto-scroll carousel every 5 seconds (slower for better UX)
+    // Auto-scroll carousel setiap 5 detik
     _autoScrollTimer = Timer.periodic(Duration(seconds: 5), (timer) {
       if (mounted && _pageController.hasClients) {
-        int nextPage = (_carouselIndex + 1) % 4;
+        int nextPage = (_carouselIndex + 1) % 4; // Asumsi 4 buku top
         _pageController.animateToPage(
           nextPage,
           duration: Duration(milliseconds: 800),
@@ -192,24 +194,17 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                     ),
                   ),
 
-                  // Carousel of Top Books
+                  // --- CAROUSEL (DINYALAKAN KEMBALI) ---
                   BlocBuilder<BookLibraryCubit, BookLibraryState>(
                     builder: (context, state) {
                       if (state is BookLibraryLoaded &&
                           state.books.isNotEmpty) {
-                        // Filter hanya buku yang punya cover image (tidak kosong)
+                        // Filter hanya buku yang punya cover image
                         final topBooks = state.books
                             .where((book) => book.imageUrl.isNotEmpty)
                             .take(4)
                             .toList();
 
-                        // Debug: Print imageUrl untuk lihat apa yang diterima
-                        for (var book in state.books.take(4)) {
-                          print(
-                              'Book: ${book.title}, ImageURL: ${book.imageUrl}');
-                        }
-
-                        // Jika tidak ada buku dengan cover, tampilkan default UI
                         if (topBooks.isEmpty) {
                           return SizedBox.shrink();
                         }
@@ -228,7 +223,6 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                                 itemBuilder: (context, index) {
                                   final book =
                                       topBooks[index % topBooks.length];
-                                  // Calculate scale based on distance from center
                                   final isCenter =
                                       index % topBooks.length == _carouselIndex;
                                   final scale = isCenter ? 1.05 : 0.6;
@@ -241,12 +235,10 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                                       padding:
                                           EdgeInsets.symmetric(horizontal: 8),
                                       child: GestureDetector(
+                                        // PENTING: Menggunakan context.push dari GoRouter
                                         onTap: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            '/book-detail',
-                                            arguments: book,
-                                          );
+                                          context.push('/book/${book.id}',
+                                              extra: book);
                                         },
                                         child: Container(
                                           decoration: BoxDecoration(
@@ -609,10 +601,8 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
 
                         return Column(
                           children: [
-                            // Sort and Filter Controls from dammar-dev
                             SortFilterControls(),
                             SizedBox(height: 16),
-                            // Books Grid from randy-dev (cleaner implementation)
                             Padding(
                               padding: EdgeInsets.fromLTRB(16, 0, 16, 120),
                               child: GridView.builder(
@@ -627,6 +617,7 @@ class _BookLibraryScreenState extends State<BookLibraryScreen>
                                 ),
                                 itemCount: filteredBooks.length,
                                 itemBuilder: (context, index) {
+                                  // CompactBookCard menggunakan context.push (go_router)
                                   return CompactBookCard(
                                     book: filteredBooks[index],
                                     colorIndex:

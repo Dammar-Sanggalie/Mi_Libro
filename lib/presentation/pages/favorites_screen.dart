@@ -1,13 +1,17 @@
+// lib/presentation/pages/favorites_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../data/app_data.dart'; // Keep for primaryColors
+import 'package:go_router/go_router.dart'; // Import GoRouter
+
+import '../../data/app_data.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/book_collection.dart';
 import '../../presentation/widgets/compact_book_card.dart';
-import '../cubit/user_library_cubit.dart'; // Import Cubit
-import '../cubit/user_library_state.dart'; // NEW: Import UserLibraryState
-import 'book_detail_screen.dart';
+import '../cubit/user_library_cubit.dart';
+import '../cubit/user_library_state.dart';
+// import 'book_detail_screen.dart'; // Tidak diperlukan lagi
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -17,11 +21,8 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  // State untuk Search
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
-  // State untuk "Masuk" ke dalam collection
   BookCollection? _openedCollection;
 
   @override
@@ -40,8 +41,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     super.dispose();
   }
 
-  // --- LOGIC COLLECTION (Create, Add, Delete) ---
-
   void _createNewCollection() {
     final TextEditingController nameController = TextEditingController();
     showDialog(
@@ -49,7 +48,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF2A2A3E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('New Collection', style: TextStyle(color: Colors.white)),
+        title:
+            const Text('New Collection', style: TextStyle(color: Colors.white)),
         content: TextField(
           controller: nameController,
           style: const TextStyle(color: Colors.white),
@@ -65,7 +65,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child:
+                const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -75,7 +76,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
             onPressed: () {
               if (nameController.text.isNotEmpty) {
-                context.read<UserLibraryCubit>().createCollection(nameController.text);
+                context
+                    .read<UserLibraryCubit>()
+                    .createCollection(nameController.text);
                 Navigator.pop(context);
               }
             },
@@ -86,7 +89,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  void _addBookToCollection(BookCollection collection, List<DigitalBook> allFavorites) {
+  void _addBookToCollection(
+      BookCollection collection, List<DigitalBook> allFavorites) {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1A1A2E),
@@ -94,7 +98,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       isScrollControlled: true,
       builder: (context) {
-        // Filter buku yang belum ada di collection ini
         final availableBooks = allFavorites
             .where((b) => !collection.bookIds.contains(b.id.toString()))
             .toList();
@@ -153,23 +156,29 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                     ),
                                   ),
                                   title: Text(book.title,
-                                      style: const TextStyle(color: Colors.white),
+                                      style:
+                                          const TextStyle(color: Colors.white),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis),
                                   subtitle: Text(book.author,
-                                      style: const TextStyle(color: Colors.white54),
+                                      style: const TextStyle(
+                                          color: Colors.white54),
                                       maxLines: 1),
                                   trailing: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF6366F1).withOpacity(0.2),
+                                      color: const Color(0xFF6366F1)
+                                          .withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Icon(Icons.add_rounded,
                                         color: Color(0xFF6366F1)),
                                   ),
                                   onTap: () {
-                                    context.read<UserLibraryCubit>().addBookToCollection(collection.id, book);
+                                    context
+                                        .read<UserLibraryCubit>()
+                                        .addBookToCollection(
+                                            collection.id, book);
                                     Navigator.pop(context);
                                   },
                                 );
@@ -189,14 +198,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF2A2A3E),
-        title:
-            const Text('Delete Collection?', style: TextStyle(color: Colors.white)),
+        title: const Text('Delete Collection?',
+            style: TextStyle(color: Colors.white)),
         content: Text('Are you sure you want to delete "${collection.name}"?',
             style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              child: const Text('Cancel',
+                  style: TextStyle(color: Colors.white54))),
           TextButton(
             onPressed: () {
               context.read<UserLibraryCubit>().deleteCollection(collection.id);
@@ -214,8 +224,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // --- UI IMPLEMENTATION ---
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -228,29 +236,30 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
         ),
         child: SafeArea(
-          // Use BlocBuilder here
           child: BlocBuilder<UserLibraryCubit, UserLibraryState>(
             builder: (context, state) {
               if (state is UserLibraryLoaded) {
-                // If a collection is opened, we need to make sure it still exists in state
                 if (_openedCollection != null) {
-                   final exists = state.collections.any((c) => c.id == _openedCollection!.id);
-                   if (!exists) {
-                      // If deleted externally (rare), close it
-                      _openedCollection = null; 
-                   } else {
-                      // Update openedCollection reference to latest state
-                      _openedCollection = state.collections.firstWhere((c) => c.id == _openedCollection!.id);
-                   }
+                  final exists = state.collections
+                      .any((c) => c.id == _openedCollection!.id);
+                  if (!exists) {
+                    _openedCollection = null;
+                  } else {
+                    _openedCollection = state.collections
+                        .firstWhere((c) => c.id == _openedCollection!.id);
+                  }
                 }
 
                 return _openedCollection != null
-                    ? _buildOpenedCollectionView(state.favorites) // Pass favorites to find books
+                    ? _buildOpenedCollectionView(state.favorites)
                     : _buildMainSpotifyView(state.favorites, state.collections);
               } else if (state is UserLibraryLoading) {
-                return const Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)));
+                return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF6366F1)));
               } else if (state is UserLibraryError) {
-                return Center(child: Text("Error: ${state.message}", style: const TextStyle(color: Colors.white)));
+                return Center(
+                    child: Text("Error: ${state.message}",
+                        style: const TextStyle(color: Colors.white)));
               }
               return const SizedBox.shrink();
             },
@@ -260,8 +269,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // 1. TAMPILAN UTAMA
-  Widget _buildMainSpotifyView(List<DigitalBook> favorites, List<BookCollection> collections) {
+  Widget _buildMainSpotifyView(
+      List<DigitalBook> favorites, List<BookCollection> collections) {
     final filteredBooks = favorites.where((book) {
       final titleLower = book.title.toLowerCase();
       final authorLower = book.author.toLowerCase();
@@ -270,18 +279,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }).toList();
 
     double screenWidth = MediaQuery.of(context).size.width;
-    int crossAxisCount = 3; 
+    int crossAxisCount = 3;
 
     if (screenWidth > 900) {
-      crossAxisCount = 7; 
+      crossAxisCount = 7;
     } else if (screenWidth > 600) {
-      crossAxisCount = 4; 
+      crossAxisCount = 4;
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // A. Header & Search Bar
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
           child: Column(
@@ -317,8 +325,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ],
           ),
         ),
-
-        // B. Horizontal Collection Circles
         if (_searchQuery.isEmpty) ...[
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -332,7 +338,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
           ),
           SizedBox(
-            height: 130, 
+            height: 130,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
@@ -347,8 +353,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
           ),
         ],
-
-        // C. All Favorite Books Grid
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
           child: Row(
@@ -363,11 +367,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 ),
               ),
               if (_searchQuery.isEmpty)
-                const Icon(Icons.grid_view_rounded, color: Colors.white54, size: 20),
+                const Icon(Icons.grid_view_rounded,
+                    color: Colors.white54, size: 20),
             ],
           ),
         ),
-
         Expanded(
           child: filteredBooks.isEmpty
               ? Center(
@@ -389,7 +393,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               : GridView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount, 
+                    crossAxisCount: crossAxisCount,
                     childAspectRatio: 0.65,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 16,
@@ -420,17 +424,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.transparent, 
+                color: Colors.transparent,
                 border: Border.all(
-                  color: Colors.white54, 
+                  color: Colors.white54,
                   width: 2,
                 ),
               ),
               child: const Center(
                 child: Icon(
-                  Icons.add, 
-                  size: 35, 
-                  color: Colors.white, 
+                  Icons.add,
+                  size: 35,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -451,15 +455,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildCollectionCircle(BookCollection collection, List<DigitalBook> favorites) {
+  Widget _buildCollectionCircle(
+      BookCollection collection, List<DigitalBook> favorites) {
     String? coverUrl;
     if (collection.bookIds.isNotEmpty) {
-      // Find book from favorites list
       try {
-        final firstBook = favorites.firstWhere((b) => b.id.toString() == collection.bookIds.first);
+        final firstBook = favorites
+            .firstWhere((b) => b.id.toString() == collection.bookIds.first);
         coverUrl = firstBook.imageUrl;
       } catch (e) {
-        // Book might not be in favorites anymore? or local data mismatch
         coverUrl = null;
       }
     }
@@ -499,7 +503,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         : _buildDefaultCollectionIcon(),
                   ),
                 ),
-
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -570,7 +573,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // 2. TAMPILAN DALAM COLLECTION (Detail View)
   Widget _buildOpenedCollectionView(List<DigitalBook> favorites) {
     final collection = _openedCollection!;
 
@@ -586,7 +588,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     return Column(
       children: [
-        // Header Navigasi
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
@@ -597,15 +598,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 onPressed: () => setState(() => _openedCollection = null),
               ),
               IconButton(
-                icon:
-                    const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                icon: const Icon(Icons.delete_outline_rounded,
+                    color: Colors.redAccent),
                 onPressed: () => _deleteCollection(collection),
               ),
             ],
           ),
         ),
-
-        // Info Collection Besar
         Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -651,7 +650,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   backgroundColor: const Color(0xFF6366F1),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30)),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 onPressed: () => _addBookToCollection(collection, favorites),
                 child: const Text('Add Books',
@@ -661,15 +661,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ],
           ),
         ),
-
-        // List Buku dalam Collection
         Expanded(
           child: collectionBooks.isEmpty
               ? const Center(
                   child: Text("Collection Empty",
                       style: TextStyle(color: Colors.white24)))
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   itemCount: collectionBooks.length,
                   itemBuilder: (context, index) {
                     final book = collectionBooks[index];
@@ -678,15 +677,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EnhancedBookDetailScreen(
-                                bookId: book.id.toString(),
-                                initialBook: book,
-                              ),
-                            ),
-                          );
+                          // Menggunakan GoRouter untuk pindah ke detail buku
+                          context.push('/book/${book.id}', extra: book);
                         },
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(4),
@@ -700,7 +692,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 color: Colors.white10,
                                 width: 48,
                                 height: 72,
-                                child: const Icon(Icons.book, color: Colors.white)),
+                                child: const Icon(Icons.book,
+                                    color: Colors.white)),
                           ),
                         ),
                         title: Text(book.title,
@@ -710,16 +703,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                         subtitle: Text(book.author,
-                            style:
-                                const TextStyle(color: Colors.white54, fontSize: 13),
+                            style: const TextStyle(
+                                color: Colors.white54, fontSize: 13),
                             maxLines: 1),
                         trailing: PopupMenuButton<String>(
                           icon: const Icon(Icons.more_vert_rounded,
                               color: Colors.white54),
                           onSelected: (value) {
                             if (value == 'delete') {
-                                context.read<UserLibraryCubit>().removeBookFromCollection(collection.id, book.id.toString());
-                              
+                              context
+                                  .read<UserLibraryCubit>()
+                                  .removeBookFromCollection(
+                                      collection.id, book.id.toString());
+
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(

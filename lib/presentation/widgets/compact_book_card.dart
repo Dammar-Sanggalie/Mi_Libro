@@ -1,8 +1,10 @@
+// lib/presentation/widgets/compact_book_card.dart
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart'; // WAJIB IMPORT INI
 import '../../data/app_data.dart';
 import '../../domain/entities/book.dart';
-import '../pages/book_detail_screen.dart'; // Corrected import path
 
 class CompactBookCard extends StatelessWidget {
   final DigitalBook book;
@@ -14,10 +16,8 @@ class CompactBookCard extends StatelessWidget {
     required this.colorIndex,
   });
 
-  // FUNGSI PROXY: Mengatasi CORS dan blocking
   String _getProxyUrl(String url) {
-    // Menggunakan wsrv.nl (Image Cache & Proxy)
-    // URL asli harus di-encode agar aman
+    // Menggunakan wsrv.nl sebagai proxy image cache agar gambar bisa dimuat
     return 'https://wsrv.nl/?url=${Uri.encodeComponent(url)}';
   }
 
@@ -25,27 +25,9 @@ class CompactBookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                EnhancedBookDetailScreen(bookId: book.id.toString()),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0.0, 0.3),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                ),
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 400),
-          ),
-        );
+        // PERBAIKAN: Menggunakan context.push dari GoRouter
+        // Ini memastikan URL di browser berubah menjadi /book/:id
+        context.push('/book/${book.id}', extra: book);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -63,11 +45,10 @@ class CompactBookCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // --- IMAGE DENGAN PROXY ---
+              // Background Image dengan Proxy
               CachedNetworkImage(
-                imageUrl: _getProxyUrl(book.imageUrl), // Gunakan Proxy URL
+                imageUrl: _getProxyUrl(book.imageUrl),
                 fit: BoxFit.cover,
-                // Headers dihapus karena request ke proxy tidak butuh User-Agent khusus
                 placeholder: (context, url) => Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -110,7 +91,8 @@ class CompactBookCard extends StatelessWidget {
                   );
                 },
               ),
-              // Gradient Overlay
+
+              // Gradient Overlay (Agar teks terbaca)
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -124,13 +106,15 @@ class CompactBookCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Content Text
+
+              // Text Content
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Badge Bahasa (Jika ada)
                     Row(
                       children: [
                         if (book.languages.isNotEmpty)
@@ -155,6 +139,8 @@ class CompactBookCard extends StatelessWidget {
                       ],
                     ),
                     const Spacer(),
+
+                    // Judul & Penulis
                     LayoutBuilder(
                       builder: (context, constraints) {
                         return Column(
@@ -206,6 +192,7 @@ class CompactBookCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 3),
+
                             // Rating Row
                             Row(
                               children: [
@@ -226,7 +213,8 @@ class CompactBookCard extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 3),
-                            // Footer (Category & Download)
+
+                            // Footer (Category & Download Count)
                             Row(
                               children: [
                                 Flexible(

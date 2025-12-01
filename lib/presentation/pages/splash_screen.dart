@@ -1,8 +1,9 @@
+// lib/presentation/pages/splash_screen.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 
-// Modern Premium Splash Screen
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,25 +28,21 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Main animation controller
     _controller = AnimationController(
       duration: const Duration(milliseconds: 2500),
       vsync: this,
     );
 
-    // Pulse animation for logo
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
-    // Rotate animation for decorative elements
     _rotateController = AnimationController(
       duration: const Duration(seconds: 20),
       vsync: this,
     );
 
-    // Shimmer animation
     _shimmerController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -90,30 +87,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                LoginScreen(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.1),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                  )),
-                  child: child,
-                ),
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
-        );
+        // Menggunakan GoRouter untuk navigasi ke Login
+        context.go('/login');
       }
     });
   }
@@ -129,6 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    // UI Code sama persis, tidak ada perubahan
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -146,10 +122,7 @@ class _SplashScreenState extends State<SplashScreen>
         ),
         child: Stack(
           children: [
-            // Animated background decorations
             _buildBackgroundDecorations(),
-
-            // Main content
             Center(
               child: AnimatedBuilder(
                 animation: _controller,
@@ -159,7 +132,6 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Logo with animations
                         Transform.translate(
                           offset: Offset(0, -_slideAnimation.value),
                           child: ScaleTransition(
@@ -226,10 +198,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 56),
-
-                        // App Name with shimmer effect
                         Transform.translate(
                           offset: Offset(0, _slideAnimation.value),
                           child: AnimatedBuilder(
@@ -264,10 +233,7 @@ class _SplashScreenState extends State<SplashScreen>
                             },
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
-                        // Tagline
                         Transform.translate(
                           offset: Offset(0, _slideAnimation.value * 0.5),
                           child: Container(
@@ -310,10 +276,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 100),
-
-                        // Loading indicator with custom design
                         Transform.translate(
                           offset: Offset(0, _slideAnimation.value * 0.3),
                           child: Stack(
@@ -342,10 +305,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 50),
-
-                        // Footer text with fade
                         Transform.translate(
                           offset: Offset(0, -_slideAnimation.value * 0.2),
                           child: Column(
@@ -387,7 +347,6 @@ class _SplashScreenState extends State<SplashScreen>
   Widget _buildBackgroundDecorations() {
     return Stack(
       children: [
-        // Rotating gradient orb 1
         Positioned(
           top: -150,
           right: -150,
@@ -415,8 +374,6 @@ class _SplashScreenState extends State<SplashScreen>
             },
           ),
         ),
-
-        // Rotating gradient orb 2
         Positioned(
           bottom: -150,
           left: -150,
@@ -444,8 +401,6 @@ class _SplashScreenState extends State<SplashScreen>
             },
           ),
         ),
-
-        // Center glow
         Center(
           child: Container(
             width: 300,

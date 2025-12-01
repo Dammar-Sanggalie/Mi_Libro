@@ -21,13 +21,13 @@ import 'package:perpustakaan_mini/domain/usecases/toggle_favorite.dart';
 import 'package:perpustakaan_mini/domain/usecases/get_collections.dart';
 import 'package:perpustakaan_mini/domain/usecases/save_collections.dart';
 
-import 'package:perpustakaan_mini/presentation/pages/splash_screen.dart';
-import 'package:perpustakaan_mini/data/app_data.dart';
+// IMPORT ROUTER BARU
+import 'package:perpustakaan_mini/presentation/routes/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
-  
+
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
 
@@ -80,7 +80,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    // MENGGUNAKAN MATERIALAPP.ROUTER
+    return MaterialApp.router(
       title: 'Digital Library',
       theme: ThemeData(
         primarySwatch: Colors.grey,
@@ -94,7 +95,8 @@ class MyApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Colors.white70),
         ),
       ),
-      home: SplashScreen(),
+      // HUBUNGKAN DENGAN GO_ROUTER CONFIG
+      routerConfig: AppRouter.router,
       debugShowCheckedModeBanner: false,
     );
   }

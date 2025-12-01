@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/book_model.dart';
-import '../../domain/entities/book.dart'; // For BookPage
-import 'package:flutter/foundation.dart'; // Import for debugPrint
+import '../../domain/entities/book.dart';
 
 abstract class BookRemoteDataSource {
   Future<BookPage> getInitialBooks({required int offset, required int number});
@@ -11,8 +11,10 @@ abstract class BookRemoteDataSource {
 
 class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   final Dio dio;
-  final String _baseUrl = 'https://gutendex.com';
 
+  // Constructor ini sudah BENAR untuk testing.
+  // Jika dioClient kosong (saat app jalan), dia buat Dio baru.
+  // Jika dioClient diisi (saat testing), dia pakai yang dikirim.
   BookRemoteDataSourceImpl({Dio? dioClient})
       : dio = dioClient ??
             Dio(
@@ -28,9 +30,9 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   Future<BookPage> getInitialBooks(
       {required int offset, required int number}) async {
     try {
+      // Logic halaman (offset 0 -> page 1, offset 32 -> page 2)
       int page = (offset / 32).floor() + 1;
-      debugPrint('[Gutendex] Fetching Books (Page $page)...');
-
+      
       final response = await dio.get('/books', queryParameters: {'page': page});
 
       if (response.statusCode == 200) {
@@ -43,13 +45,11 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
             .where((book) => book.isReadable)
             .toList();
 
-        debugPrint('[Gutendex] Success: Got ${books.length} books.');
         return BookPage(books: books, totalCount: totalCount);
       } else {
         throw Exception('Failed to load books (Status: ${response.statusCode})');
       }
     } catch (e) {
-      debugPrint('[Gutendex] Error: $e');
       throw Exception('Unexpected error: $e');
     }
   }
@@ -57,7 +57,6 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   @override
   Future<List<BookModel>> searchBooks(String query) async {
     try {
-      debugPrint('[Gutendex] Searching for: $query');
       final response = await dio.get('/books', queryParameters: {'search': query});
 
       if (response.statusCode == 200) {
@@ -80,6 +79,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   Future<BookModel> getBookDetails(int bookId) async {
     try {
       final response = await dio.get('/books/$bookId');
+
       if (response.statusCode == 200) {
         return BookModel.fromGutendex(response.data);
       } else {
