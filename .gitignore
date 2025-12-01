@@ -2,3 +2,4 @@
 build
 .flutter-plugins-dependencies
 android
+lib
