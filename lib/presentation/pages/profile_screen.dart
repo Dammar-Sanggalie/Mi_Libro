@@ -1,6 +1,6 @@
 // lib/presentation/pages/profile_screen.dart
 
-import 'dart:ui'; // Diperlukan untuk ImageFilter
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -49,7 +49,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.dispose();
   }
 
-  // Fungsi Logout Fungsional
   void _handleLogout() {
     showDialog(
       context: context,
@@ -99,10 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             opacity: _fadeAnimation,
             child: Column(
               children: [
-                // 1. STICKY HEADER (Konsisten dengan Home & Fav)
                 _buildStickyHeader(),
-
-                // 2. SCROLLABLE CONTENT
                 Expanded(
                   child: SlideTransition(
                     position: _slideAnimation,
@@ -112,17 +108,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         children: [
-                          // Kartu Profil Utama
                           _buildProfileCard(),
-
                           const SizedBox(height: 32),
-
-                          // Statistik Row (Real Data)
                           _buildStatisticsRow(),
-
                           const SizedBox(height: 32),
-
-                          // Menu General (Info Aplikasi)
                           _buildSectionTitle('App Info'),
                           const SizedBox(height: 12),
                           _buildGlassMenuContainer([
@@ -134,20 +123,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                               onTap: () => context.push('/profile/about'),
                             ),
                             _buildDivider(),
+                            // FIX: Ikon Meet Team diganti menjadi Icons.people_alt_rounded
                             _buildMenuItem(
-                              icon: Icons.groups_rounded,
+                              icon: Icons.people_alt_rounded, 
                               title: 'Meet the Team',
                               subtitle: 'Kelompok 2',
                               iconColor: const Color(0xFF10B981),
                               onTap: () => context.push('/profile/about-us'),
                             ),
                           ]),
-
                           const SizedBox(height: 40),
-
-                          // Tombol Logout
                           _buildLogoutButton(),
-
                           const SizedBox(height: 24),
                           Text(
                             'Digital Library v2.0.0',
@@ -170,7 +156,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // --- HEADER WIDGET ---
   Widget _buildStickyHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -190,7 +175,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // KIRI: Logo & Teks
           Row(
             children: [
               Image.asset(
@@ -216,7 +200,6 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ],
           ),
-          // KANAN: Logout Icon
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Colors.white70),
             onPressed: _handleLogout,
@@ -227,15 +210,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // --- CONTENT WIDGETS ---
-
   Widget _buildProfileCard() {
     return Column(
       children: [
         Stack(
           alignment: Alignment.center,
           children: [
-            // Glow effect
             Container(
               width: 110,
               height: 110,
@@ -250,7 +230,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ],
               ),
             ),
-            // Avatar Container
             Container(
               width: 110,
               height: 110,
@@ -272,7 +251,6 @@ class _ProfileScreenState extends State<ProfileScreen>
           ],
         ),
         const SizedBox(height: 20),
-        // Nama User
         Text(
           AppData.currentUser?.username.toUpperCase() ?? 'GUEST',
           style: const TextStyle(
@@ -283,7 +261,6 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
         const SizedBox(height: 6),
-        // Email User
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
@@ -299,7 +276,6 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
         const SizedBox(height: 12),
-        // Join Date
         if (AppData.currentUser != null)
           Text(
             'Member since ${DateFormat('MMMM yyyy').format(AppData.currentUser!.joinDate)}',
@@ -321,65 +297,61 @@ class _ProfileScreenState extends State<ProfileScreen>
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
-      child: BlocBuilder<BookLibraryCubit, BookLibraryState>(
-        builder: (context, state) {
-          // Default data
-          String totalBooks = '0';
-          String totalReviews = '0';
-
-          if (state is BookLibraryLoaded) {
-            totalBooks = '${state.totalBookCount}';
-            // Menghitung jumlah buku yang memiliki rating > 0 dari state yang ada
-            totalReviews =
-                '${state.books.where((book) => (book.rating ?? 0) > 0).length}';
-          } else {
-            // Fallback ke AppData jika state belum loaded
-            totalBooks = '${AppData.books.length}';
-            totalReviews =
-                '${AppData.books.where((book) => (book.rating ?? 0) > 0).length}';
-          }
-
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // 1. Library (Total Books)
-              Expanded(
-                child: _buildStatItem('Library', totalBooks,
-                    Icons.menu_book_rounded, const Color(0xFF6366F1)),
-              ),
-
-              _buildVerticalDivider(),
-
-              // 2. Favorites (Dari UserLibraryCubit)
-              Expanded(
-                child: BlocBuilder<UserLibraryCubit, UserLibraryState>(
-                  builder: (context, userState) {
-                    String favCount = '0';
-                    if (userState is UserLibraryLoaded) {
-                      favCount = '${userState.favorites.length}';
-                    } else {
-                      favCount = '${AppData.favoriteBooks.length}';
-                    }
-                    return _buildStatItem('Favorites', favCount,
-                        Icons.favorite_rounded, const Color(0xFFEC4899));
-                  },
-                ),
-              ),
-
-              _buildVerticalDivider(),
-
-              // 3. Reviews (Data Review dari BookLibraryCubit/AppData)
-              Expanded(
-                child: _buildStatItem(
-                  'Reviews',
-                  totalReviews,
-                  Icons.star_rounded, // Menggunakan ikon Bintang
-                  const Color(0xFFFFC107), // Warna Amber/Emas
-                ),
-              ),
-            ],
-          );
-        },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Expanded(
+            child: BlocBuilder<BookLibraryCubit, BookLibraryState>(
+              builder: (context, state) {
+                String total = '...';
+                if (state is BookLibraryLoaded) {
+                  total = '${state.totalBookCount}';
+                } else if (state is BookLibraryInitial) {
+                  total = '${AppData.books.length}';
+                }
+                return _buildStatItem('Library', total, Icons.menu_book_rounded,
+                    const Color(0xFF6366F1));
+              },
+            ),
+          ),
+          _buildVerticalDivider(),
+          Expanded(
+            child: BlocBuilder<UserLibraryCubit, UserLibraryState>(
+              builder: (context, state) {
+                String favCount = '0';
+                if (state is UserLibraryLoaded) {
+                  favCount = '${state.favorites.length}';
+                } else {
+                  favCount = '${AppData.favoriteBooks.length}';
+                }
+                return _buildStatItem(
+                  'Favorites',
+                  favCount,
+                  Icons.favorite_rounded,
+                  const Color(0xFFEC4899),
+                );
+              },
+            ),
+          ),
+          _buildVerticalDivider(),
+          Expanded(
+            child: BlocBuilder<UserLibraryCubit, UserLibraryState>(
+              builder: (context, state) {
+                String collectionCount = '0';
+                if (state is UserLibraryLoaded) {
+                  collectionCount = '${state.collections.length}';
+                }
+                // FIX: Ikon Collections diganti menjadi Icons.folder_copy_rounded
+                return _buildStatItem(
+                  'Collections',
+                  collectionCount,
+                  Icons.folder_copy_rounded, 
+                  const Color(0xFF20C997),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
