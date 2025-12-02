@@ -197,7 +197,7 @@ class _AboutScreenState extends State<AboutScreen>
         ),
         const SizedBox(height: 16),
         const Text(
-          "Developed with ❤️ by Kelompok 2",
+          "Developed by Kelompok 2",
           style: TextStyle(
             color: Colors.white70,
             fontSize: 14,
