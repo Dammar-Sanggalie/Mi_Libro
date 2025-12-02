@@ -1,9 +1,9 @@
 // lib/presentation/pages/book_detail_screen.dart
 
+import 'dart:ui'; // Diperlukan untuk ImageFilter
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:getwidget/getwidget.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -11,7 +11,7 @@ import 'package:perpustakaan_mini/domain/repositories/book_repository.dart';
 import '../../data/app_data.dart';
 import '../../domain/entities/book.dart';
 import '../cubit/user_library_cubit.dart';
-import '../cubit/user_library_state.dart'; // TAMBAHAN: Import State agar UserLibraryLoaded dikenali
+import '../cubit/user_library_state.dart';
 
 class EnhancedBookDetailScreen extends StatefulWidget {
   final String bookId;
@@ -37,7 +37,6 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   DigitalBook? _book;
   bool _isLoading = true;
   String? _error;
-
   double _userRating = 0.0;
 
   @override
@@ -47,20 +46,19 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     _book = widget.initialBook;
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
 
     _animationController.forward();
 
-    // Fetch details if needed
     if (_book == null) {
       _fetchBookDetails();
     } else {
@@ -70,7 +68,6 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   }
 
   Future<void> _loadRating() async {
-    // Ideally this should also be in a Cubit or Repository call
     if (_book != null) {
       final rating =
           await context.read<BookRepository>().getRating(_book!.id.toString());
@@ -112,9 +109,6 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
   void _toggleFavorite() {
     if (_book == null) return;
     context.read<UserLibraryCubit>().toggleFavoriteBook(_book!);
-
-    // Snackbars are now handled locally or we can listen to state changes
-    // But simpler to just show generic feedback or let the UI update visually
   }
 
   Future<void> _openReadLink() async {
@@ -126,7 +120,6 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     final url = _book!.epubUrl;
 
     if (_book!.isReadable) {
-      // Menggunakan GoRouter untuk navigasi ke Epub Reader
       context.push('/read', extra: {
         'url': url,
         'title': _book!.title,
@@ -152,32 +145,28 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     );
   }
 
-  Widget _buildLoadingScreen() {
-    return const Scaffold(
-      backgroundColor: Color(0xFF1A1A2E),
-      body: Center(child: CircularProgressIndicator(color: Color(0xFF6366F1))),
-    );
-  }
-
-  Widget _buildErrorScreen() {
-    return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
-      backgroundColor: const Color(0xFF1A1A2E),
-      body: Center(
-          child: Text(_error ?? 'Error',
-              style: const TextStyle(color: Colors.white))),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_isLoading && _book == null) return _buildLoadingScreen();
-    if (_book == null) return _buildErrorScreen();
+    if (_isLoading && _book == null) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F0F23),
+        body: Center(
+            child: CircularProgressIndicator(color: Color(0xFF6366F1))),
+      );
+    }
+
+    if (_book == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0F0F23),
+        appBar: AppBar(backgroundColor: Colors.transparent),
+        body: Center(
+            child: Text(_error ?? 'Error loading book',
+                style: const TextStyle(color: Colors.white))),
+      );
+    }
 
     final DigitalBook book = _book!;
-    int colorIndex = book.title.hashCode.abs() % AppData.primaryColors.length;
-
-    // Check favorite status from Cubit
+    
     final isFavorite = context.select<UserLibraryCubit, bool>((cubit) {
       if (cubit.state is UserLibraryLoaded) {
         return (cubit.state as UserLibraryLoaded)
@@ -188,287 +177,420 @@ class _EnhancedBookDetailScreenState extends State<EnhancedBookDetailScreen>
     });
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A1A2E), Color(0xFF0F0F23)],
+      backgroundColor: const Color(0xFF0F0F23),
+      body: Stack(
+        children: [
+          // 1. BACKGROUND
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl: 'https://wsrv.nl/?url=${Uri.encodeComponent(book.imageUrl)}',
+              fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => Container(color: const Color(0xFF0F0F23)),
+            ),
           ),
-        ),
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: 350,
-                  pinned: true,
-                  backgroundColor: Colors.transparent,
-                  leading: Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded,
-                          color: Colors.white),
-                      // Menggunakan context.pop() pengganti Navigator.pop
-                      onPressed: () => context.pop(),
-                    ),
-                  ),
-                  actions: [
-                    Container(
-                      margin: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
-                        shape: BoxShape.circle,
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                color: const Color(0xFF0F0F23).withOpacity(0.85),
+              ),
+            ),
+          ),
+
+          // 2. CONTENT
+          SafeArea(
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildGlassIconButton(
+                        icon: Icons.arrow_back_rounded,
+                        onTap: () => context.pop(),
                       ),
-                      child: IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : Colors.white,
-                        ),
-                        onPressed: _toggleFavorite,
-                      ),
-                    ),
-                  ],
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppData.primaryColors[colorIndex],
-                            AppData.primaryColors[colorIndex].withOpacity(0.7),
-                          ],
+                      const Text(
+                        "Book Details",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      child: Stack(
-                        children: [
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Hero(
-                                  tag: 'book_cover_${book.id}',
-                                  child: Container(
-                                    width: 140,
-                                    height: 200,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                            color: Colors.black38,
-                                            blurRadius: 20,
-                                            offset: Offset(0, 10)),
-                                      ],
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: CachedNetworkImage(
-                                        imageUrl:
-                                            'https://wsrv.nl/?url=${Uri.encodeComponent(book.imageUrl)}',
-                                        fit: BoxFit.cover,
-                                        placeholder: (ctx, url) => Container(
-                                          color: Colors.white10,
-                                          child: const Center(
-                                              child: CircularProgressIndicator(
-                                                  color: Colors.white)),
-                                        ),
-                                        errorWidget: (ctx, url, error) =>
-                                            Container(
-                                          color: Colors.white24,
-                                          child: const Icon(Icons.book,
-                                              color: Colors.white, size: 50),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                GFRating(
-                                  value: _userRating,
-                                  onChanged: (v) {
-                                    setState(() => _userRating = v);
-                                    context
-                                        .read<BookRepository>()
-                                        .saveRating(book.id.toString(), v);
-                                  },
-                                  size: GFSize.SMALL,
-                                  color: Colors.amber,
-                                  borderColor: Colors.amber,
-                                  allowHalfRating: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      _buildGlassIconButton(
+                        // Gunakan Icons.favorite agar filled, warna putih jika tidak aktif
+                        icon: Icons.favorite,
+                        color: isFavorite ? Colors.redAccent : Colors.white,
+                        onTap: _toggleFavorite,
                       ),
-                    ),
+                    ],
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          book.title,
-                          style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w300,
-                              color: Colors.white),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'by ${book.author}',
-                          style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 24),
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          childAspectRatio: 2.5,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(24, 10, 24, 100),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Column(
                           children: [
-                            _buildInfoCard(
-                                'Gutendex ID', book.id.toString(), Icons.tag),
-                            _buildInfoCard('Downloads',
-                                book.getFormattedDownloads(), Icons.download),
-                            _buildInfoCard(
-                                'Language',
-                                book.languages.isNotEmpty
-                                    ? book.languages.join(', ').toUpperCase()
-                                    : '-',
-                                Icons.language),
-                            _buildInfoCard(
-                                'Format',
-                                book.isReadable ? 'EPUB' : 'Unknown',
-                                Icons.file_present),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        const Text('Subjects / Shelves',
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white)),
-                        const SizedBox(height: 12),
-                        Text(
-                          book.description,
-                          style: const TextStyle(
-                              fontSize: 15, color: Colors.white70, height: 1.6),
-                          textAlign: TextAlign.justify,
-                        ),
-                        const SizedBox(height: 32),
-                        Container(
-                          height: 56,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            gradient: book.isReadable
-                                ? const LinearGradient(colors: [
-                                    Color(0xFF6366F1),
-                                    Color(0xFF8B5CF6)
-                                  ])
-                                : LinearGradient(colors: [
-                                    Colors.grey.shade800,
-                                    Colors.grey.shade900
-                                  ]),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: book.isReadable
-                                ? [
+                            const SizedBox(height: 10),
+                            // Cover
+                            Hero(
+                              tag: 'book_cover_${book.id}',
+                              child: Container(
+                                width: 160,
+                                height: 240,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
                                     BoxShadow(
-                                        color: const Color(0xFF6366F1)
-                                            .withOpacity(0.3),
-                                        blurRadius: 20,
-                                        offset: const Offset(0, 8))
-                                  ]
-                                : [],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: book.isReadable ? _openReadLink : null,
-                              borderRadius: BorderRadius.circular(16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    book.isReadable
-                                        ? Icons.menu_book_rounded
-                                        : Icons.lock_outline,
-                                    color: Colors.white.withOpacity(
-                                        book.isReadable ? 1.0 : 0.5),
+                                      color: Colors.black.withOpacity(0.4),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: CachedNetworkImage(
+                                    imageUrl: 'https://wsrv.nl/?url=${Uri.encodeComponent(book.imageUrl)}',
+                                    fit: BoxFit.cover,
+                                    placeholder: (_, __) => Container(
+                                      color: Colors.white10,
+                                      child: const Center(
+                                          child: CircularProgressIndicator(strokeWidth: 2)),
+                                    ),
                                   ),
-                                  const SizedBox(width: 8),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            // Info
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              child: Column(
+                                children: [
                                   Text(
-                                    book.isReadable
-                                        ? 'Read Now'
-                                        : 'Not Available',
+                                    book.title,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    book.author,
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white.withOpacity(
-                                          book.isReadable ? 1.0 : 0.5),
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
+
+                            const SizedBox(height: 24),
+
+                            // --- STATS ROW DENGAN BACKGROUND IKON ---
+                            _buildStatsRow(book),
+
+                            const SizedBox(height: 24),
+
+                            // Description
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "Description",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 800),
+                                child: Text(
+                                  book.description.isNotEmpty 
+                                      ? book.description 
+                                      : "No description available for this book.",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    height: 1.6,
+                                    color: Colors.white.withOpacity(0.7),
+                                  ),
+                                  textAlign: TextAlign.justify,
+                                ),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 24),
+                            
+                            // Rating Input
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                              ),
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    "Rate this book",
+                                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildInteractiveRatingBar(),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 32),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
+
+          // 3. Floating Button
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xFF0F0F23).withOpacity(0.9),
+                    const Color(0xFF0F0F23),
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _openReadLink,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF6366F1).withOpacity(0.4),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.menu_book_rounded, color: Colors.white),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Start Reading',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- HELPER WIDGETS ---
+
+  Widget _buildGlassIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    Color color = Colors.white,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoCard(String title, String value, IconData icon) {
+  // --- STATS ROW BARU (DENGAN BADGE BACKGROUND) ---
+  Widget _buildStatsRow(DigitalBook book) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatItem(
+                "Rating", 
+                _userRating > 0 ? _userRating.toString() : "-", 
+                Icons.star, // Ikon Solid
+                Colors.amber
+              ),
+              
+              _buildVerticalDivider(),
+              
+              // IKON FLAG DIUBAH DAN DIBERI BACKGROUND BIRU
+              _buildStatItem(
+                "Language", 
+                book.languages.isNotEmpty ? book.languages.first.toUpperCase() : "EN", 
+                Icons.flag_rounded, // Menggunakan Flag
+                Colors.blueAccent
+              ),
+              
+              _buildVerticalDivider(),
+              
+              _buildStatItem(
+                "Downloads", 
+                book.getFormattedDownloads(), 
+                Icons.download_rounded, 
+                Colors.greenAccent
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon, Color iconColor) {
+    return Column(
+      children: [
+        // Container Background untuk Ikon (Agar PASTI terlihat)
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.15), // Background transparan warna ikon
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: iconColor, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.5),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalDivider() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Icon(icon, color: Colors.white70, size: 14),
-            const SizedBox(width: 6),
-            Expanded(
-                child: Text(title,
-                    style: const TextStyle(fontSize: 10, color: Colors.white54),
-                    overflow: TextOverflow.ellipsis)),
-          ]),
-          const SizedBox(height: 4),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white),
-              overflow: TextOverflow.ellipsis),
-        ],
-      ),
+      height: 30,
+      width: 1,
+      color: Colors.white.withOpacity(0.1),
+    );
+  }
+
+  // --- RATING BAR (SOLID COLOR) ---
+  Widget _buildInteractiveRatingBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        return GestureDetector(
+          onTap: () {
+            double rating = index + 1.0;
+            setState(() => _userRating = rating);
+            context.read<BookRepository>().saveRating(_book!.id.toString(), rating);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Icon(
+              // Gunakan Icons.star (Filled) untuk semua kondisi
+              Icons.star,
+              
+              // WARNA: Amber (Terpilih) vs Putih Solid (Tidak)
+              // Colors.grey.withOpacity(0.3) -> Diganti jadi Colors.white24 atau Grey Solid
+              color: index < _userRating ? Colors.amber : Colors.grey.shade700,
+              
+              size: 38,
+            ),
+          ),
+        );
+      }),
     );
   }
 }
