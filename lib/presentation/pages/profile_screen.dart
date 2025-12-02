@@ -1,6 +1,6 @@
 // lib/presentation/pages/profile_screen.dart
 
-import 'dart:ui'; // Diperlukan untuk ImageFilter
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/app_data.dart';
 import '../cubit/book_library_cubit.dart';
+import '../cubit/user_library_cubit.dart';
+import '../cubit/user_library_state.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -47,7 +49,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.dispose();
   }
 
-  // Fungsi Logout
   void _handleLogout() {
     showDialog(
       context: context,
@@ -62,7 +63,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child:
+                const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () {
@@ -72,7 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               AppData.saveFavorites();
               context.go('/login');
             },
-            child: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
+            child:
+                const Text('Logout', style: TextStyle(color: Colors.redAccent)),
           ),
         ],
       ),
@@ -83,7 +86,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        // Background Gradient Global
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -96,89 +98,51 @@ class _ProfileScreenState extends State<ProfileScreen>
             opacity: _fadeAnimation,
             child: Column(
               children: [
-                // 1. STICKY HEADER (Sama dengan Home & Fav)
                 _buildStickyHeader(),
-
-                // 2. SCROLLABLE CONTENT
                 Expanded(
                   child: SlideTransition(
                     position: _slideAnimation,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 20),
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         children: [
-                          // Profile Info Card
                           _buildProfileCard(),
-
-                          const SizedBox(height: 24),
-
-                          // Statistics Row
-                          _buildStatisticsRow(),
-
-                          const SizedBox(height: 24),
-
-                          // Reading Challenge
-                          _buildReadingChallenge(),
-
                           const SizedBox(height: 32),
-
-                          // Menu: Account Settings
-                          _buildSectionTitle('Account Settings'),
-                          const SizedBox(height: 12),
-                          _buildGlassMenuContainer([
-                            _buildMenuItem(
-                              icon: Icons.person_outline_rounded,
-                              title: 'Edit Profile',
-                              onTap: () {},
-                            ),
-                            _buildDivider(),
-                            _buildMenuItem(
-                              icon: Icons.notifications_none_rounded,
-                              title: 'Notifications',
-                              onTap: () {},
-                            ),
-                            _buildDivider(),
-                            _buildMenuItem(
-                              icon: Icons.lock_outline_rounded,
-                              title: 'Privacy & Security',
-                              onTap: () {},
-                            ),
-                          ]),
-
-                          const SizedBox(height: 24),
-
-                          // Menu: General
-                          _buildSectionTitle('General'),
+                          _buildStatisticsRow(),
+                          const SizedBox(height: 32),
+                          _buildSectionTitle('App Info'),
                           const SizedBox(height: 12),
                           _buildGlassMenuContainer([
                             _buildMenuItem(
                               icon: Icons.info_outline_rounded,
                               title: 'About App',
+                              subtitle: 'Version & Features',
+                              iconColor: const Color(0xFF3B82F6),
                               onTap: () => context.push('/profile/about'),
                             ),
                             _buildDivider(),
+                            // FIX: Ikon Meet Team diganti menjadi Icons.people_alt_rounded
                             _buildMenuItem(
-                              icon: Icons.groups_rounded,
+                              icon: Icons.people_alt_rounded, 
                               title: 'Meet the Team',
+                              subtitle: 'Kelompok 2',
+                              iconColor: const Color(0xFF10B981),
                               onTap: () => context.push('/profile/about-us'),
                             ),
                           ]),
-
-                          const SizedBox(height: 32),
-
-                          // Logout Button
-                          _buildLogoutButton(),
-
                           const SizedBox(height: 40),
+                          _buildLogoutButton(),
+                          const SizedBox(height: 24),
                           Text(
-                            'Version 2.0.0 (Build 2025)',
+                            'Digital Library v2.0.0',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.3),
                               fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 80), // Bottom padding
+                          const SizedBox(height: 80),
                         ],
                       ),
                     ),
@@ -192,7 +156,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // --- HEADER WIDGET (MATCHING HOME & FAV) ---
   Widget _buildStickyHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -212,7 +175,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // KIRI: Logo & Teks
           Row(
             children: [
               Image.asset(
@@ -238,154 +200,179 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ],
           ),
-          // KANAN: Settings/Logout Icon (Contextual for Profile)
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            icon: const Icon(Icons.logout_rounded, color: Colors.white70),
             onPressed: _handleLogout,
+            tooltip: 'Logout',
           ),
         ],
       ),
     );
   }
 
-  // --- CONTENT WIDGETS ---
-
   Widget _buildProfileCard() {
-    return Stack(
+    return Column(
       children: [
-        // Background Glow
-        Positioned.fill(
-          child: Center(
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF6366F1).withOpacity(0.2),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        Column(
+        Stack(
+          alignment: Alignment.center,
           children: [
-            // Avatar
             Container(
-              padding: const EdgeInsets.all(4),
+              width: 110,
+              height: 110,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFFEC4899)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFF1A1A2E), // Fallback bg
-                ),
-                child: const Icon(Icons.person_rounded,
-                    size: 60, color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Name
-            Text(
-              AppData.currentUser?.username.toUpperCase() ?? 'GUEST',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            // Email
-            Text(
-              AppData.currentUser?.email ?? 'Sign in to sync data',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.5),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Level Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: const Color(0xFF6366F1).withOpacity(0.3)),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.military_tech_rounded,
-                      color: Color(0xFFFFD700), size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Bibliophile Lvl. 5',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6366F1).withOpacity(0.3),
+                    blurRadius: 40,
+                    spreadRadius: 10,
                   ),
                 ],
               ),
             ),
+            Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(color: Colors.white, width: 2.5),
+              ),
+              child: const Icon(
+                Icons.person_rounded,
+                size: 55,
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
+        const SizedBox(height: 20),
+        Text(
+          AppData.currentUser?.username.toUpperCase() ?? 'GUEST',
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            AppData.currentUser?.email ?? 'No email connected',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.white.withOpacity(0.6),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (AppData.currentUser != null)
+          Text(
+            'Member since ${DateFormat('MMMM yyyy').format(AppData.currentUser!.joinDate)}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.4),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildStatisticsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: BlocBuilder<BookLibraryCubit, BookLibraryState>(
-            builder: (context, state) {
-              String total = '0';
-              if (state is BookLibraryLoaded) {
-                total = '${state.totalBookCount}';
-              } else {
-                total = '${AppData.books.length}';
-              }
-              return _buildStatItem('Library', total, Icons.menu_book_rounded);
-            },
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Expanded(
+            child: BlocBuilder<BookLibraryCubit, BookLibraryState>(
+              builder: (context, state) {
+                String total = '...';
+                if (state is BookLibraryLoaded) {
+                  total = '${state.totalBookCount}';
+                } else if (state is BookLibraryInitial) {
+                  total = '${AppData.books.length}';
+                }
+                return _buildStatItem('Library', total, Icons.menu_book_rounded,
+                    const Color(0xFF6366F1));
+              },
+            ),
           ),
-        ),
-        Container(width: 1, height: 40, color: Colors.white.withOpacity(0.1)),
-        Expanded(
-          child: _buildStatItem(
-              'Favorites', '${AppData.favoriteBooks.length}', Icons.favorite_rounded),
-        ),
-        Container(width: 1, height: 40, color: Colors.white.withOpacity(0.1)),
-        Expanded(
-          child: _buildStatItem('Reviews', '12', Icons.star_rate_rounded),
-        ),
-      ],
+          _buildVerticalDivider(),
+          Expanded(
+            child: BlocBuilder<UserLibraryCubit, UserLibraryState>(
+              builder: (context, state) {
+                String favCount = '0';
+                if (state is UserLibraryLoaded) {
+                  favCount = '${state.favorites.length}';
+                } else {
+                  favCount = '${AppData.favoriteBooks.length}';
+                }
+                return _buildStatItem(
+                  'Favorites',
+                  favCount,
+                  Icons.favorite_rounded,
+                  const Color(0xFFEC4899),
+                );
+              },
+            ),
+          ),
+          _buildVerticalDivider(),
+          Expanded(
+            child: BlocBuilder<UserLibraryCubit, UserLibraryState>(
+              builder: (context, state) {
+                String collectionCount = '0';
+                if (state is UserLibraryLoaded) {
+                  collectionCount = '${state.collections.length}';
+                }
+                // FIX: Ikon Collections diganti menjadi Icons.folder_copy_rounded
+                return _buildStatItem(
+                  'Collections',
+                  collectionCount,
+                  Icons.folder_copy_rounded, 
+                  const Color(0xFF20C997),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon) {
+  Widget _buildStatItem(
+      String label, String value, IconData icon, Color color) {
     return Column(
       children: [
-        Icon(icon, color: const Color(0xFF8B5CF6), size: 22),
-        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(height: 12),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -394,100 +381,20 @@ class _ProfileScreenState extends State<ProfileScreen>
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             color: Colors.white.withOpacity(0.5),
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildReadingChallenge() {
+  Widget _buildVerticalDivider() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF6366F1).withOpacity(0.15),
-            const Color(0xFF8B5CF6).withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Weekly Goal',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  '3 / 5 Books',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Progress Bar
-          Stack(
-            children: [
-              Container(
-                height: 10,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-              FractionallySizedBox(
-                widthFactor: 0.6, // 60%
-                child: Container(
-                  height: 10,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6366F1), Color(0xFFEC4899)],
-                    ),
-                    borderRadius: BorderRadius.circular(5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF6366F1).withOpacity(0.5),
-                        blurRadius: 10,
-                        offset: const Offset(0, 0),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'You are on a 5-day streak! Keep reading to earn the "Bookworm" badge.',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
-              fontSize: 12,
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
+      height: 40,
+      width: 1,
+      color: Colors.white.withOpacity(0.1),
     );
   }
 
@@ -525,6 +432,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
+    required String subtitle,
+    required Color iconColor,
     required VoidCallback onTap,
   }) {
     return Material(
@@ -535,16 +444,36 @@ class _ProfileScreenState extends State<ProfileScreen>
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Row(
             children: [
-              Icon(icon, color: Colors.white.withOpacity(0.7), size: 22),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
               const SizedBox(width: 16),
               Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Icon(Icons.chevron_right_rounded,
@@ -561,25 +490,32 @@ class _ProfileScreenState extends State<ProfileScreen>
       height: 1,
       thickness: 1,
       color: Colors.white.withOpacity(0.05),
-      indent: 58,
+      indent: 64,
     );
   }
 
   Widget _buildLogoutButton() {
-    return TextButton.icon(
-      onPressed: _handleLogout,
-      style: TextButton.styleFrom(
-        foregroundColor: const Color(0xFFEF4444),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-          side: BorderSide(color: const Color(0xFFEF4444).withOpacity(0.3)),
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _handleLogout,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFEF4444).withOpacity(0.1),
+          foregroundColor: const Color(0xFFEF4444),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: const Color(0xFFEF4444).withOpacity(0.3)),
+          ),
+          elevation: 0,
         ),
-      ),
-      icon: const Icon(Icons.logout_rounded, size: 20),
-      label: const Text(
-        'Log Out',
-        style: TextStyle(fontWeight: FontWeight.w600),
+        child: const Text(
+          'Log Out',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
