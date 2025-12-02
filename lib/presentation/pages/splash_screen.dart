@@ -213,7 +213,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
                                 ).createShader(bounds),
                                 child: const Text(
-                                  'Digital Library',
+                                  'MI LIBRO',
                                   style: TextStyle(
                                     fontSize: 36,
                                     fontWeight: FontWeight.w800,
@@ -261,7 +261,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Digital Excellence',
+                                  'Digital Library',
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.white.withOpacity(0.9),
